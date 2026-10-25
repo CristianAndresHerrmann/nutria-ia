@@ -7,3 +7,5 @@ __pycache__
 .git
 .gitignore
 README.md
+.pytest_cache
+.ruff_cache

@@ -27,8 +27,12 @@ Esta disposición es necesaria porque el `docker-compose.yml` de `nutria-backend
 - `app/main.py` — instancia de la aplicación FastAPI y registro de routers.
 - `app/api/` — un módulo por router.
 - `run.py` — punto de entrada para levantar el servidor con un solo comando.
-- `requirements.txt` — dependencias del entorno virtual.
-- `Dockerfile` — imagen de este servicio, usada por el `docker-compose.yml` de `nutria-backend`.
+- `requirements.txt` — dependencias del servicio.
+- `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, httpx, ruff, pip-audit). No entran en la imagen de runtime.
+- `tests/` — tests de pytest.
+- `pyproject.toml` — configuración de pytest y ruff (las dependencias no van acá).
+- `Dockerfile` — imagen de este servicio, en etapas: `runtime` (la última, la que usa el `docker-compose.yml` de `nutria-backend`) y `test`, que suma `requirements-dev.txt` y `tests/` para `npm run test:ia`.
+- `.github/workflows/ci.yml` — integración continua (ver "Integración continua").
 
 ## Variables de entorno
 
@@ -47,7 +51,7 @@ configuran el proveedor externo de IA y no se versionan con valor.
 python -m venv .venv
 .venv/Scripts/activate      # Windows
 source .venv/bin/activate   # Linux/macOS
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 python run.py
 ```
 
@@ -56,11 +60,35 @@ verificar que está arriba y `/docs` abre la documentación automática de FastA
 
 Para levantar el stack completo con Docker (frontend + backend + ia + postgres + proxy) con un solo comando, ver la sección "Cómo ejecutar todo el stack con Docker Compose" en el README de `nutria-backend`. En ese modo el servicio se accede como `http://ia.local.nutria.com` (virtual host servido por Traefik).
 
+## Integración continua
+
+`.github/workflows/ci.yml` corre en cada PR hacia `development` o `master`, en cada
+push a `development` y a mano desde la pestaña Actions (`workflow_dispatch`). El job
+se llama `ci` y es el check obligatorio del ruleset de `development` y `master`: un
+PR no se puede mergear con ese check en rojo.
+
+No usa secrets ni variables de GitHub: ningún test llama al proveedor externo de IA.
+Un test que lo necesite usa un doble, nunca una API key.
+
+Cada paso, y cómo reproducirlo en local desde la carpeta raíz `nutria/` (dentro del
+contenedor de la etapa `test`; `C` abrevia `docker compose -f nutria-backend/docker-compose.yml`):
+
+| Paso de la CI | En local |
+|---|---|
+| `pip install -r requirements.txt -r requirements-dev.txt` | Lo hace el build de la etapa `test` (`C build ia-test`). |
+| `ruff check` | `C run --build --rm --no-deps ia-test ruff check` |
+| `pytest` | `npm run test:ia` |
+| `pip-audit -r requirements.txt` | `C run --build --rm --no-deps ia-test pip-audit -r requirements.txt` |
+| `docker build` (sin push) y tamaño menor a 0,5 GB | `docker build -t nutria-ia:local nutria-ia` y `docker image inspect nutria-ia:local --format '{{.Size}}'` (bytes; el límite es 500 000 000). |
+
+El límite de tamaño sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
+
 ## Stack
 
 - Python
 - FastAPI
 - Uvicorn
+- pytest y ruff (desarrollo y CI)
 
 ## Repositorios relacionados
 

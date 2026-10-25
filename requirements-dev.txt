@@ -1,0 +1,6 @@
+# Herramientas de desarrollo y CI. No entran en la imagen de runtime: las instala
+# solo la etapa `test` del Dockerfile (npm run test:ia) y el workflow de CI.
+httpx==0.28.1
+pip-audit==2.10.1
+pytest==9.1.1
+ruff==0.17.0

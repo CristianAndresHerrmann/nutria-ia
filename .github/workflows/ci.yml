@@ -1,0 +1,64 @@
+# CI del servicio de IA (T12). Sin secrets: ningún test llama al proveedor externo
+# de IA. Cómo reproducir cada paso en local: README, sección "Integración continua".
+name: CI
+
+# Sin filtros `paths:` a propósito: el ruleset exige el check `ci`, y un PR que no
+# dispara el workflow quedaría bloqueado esperando un check que nunca llega.
+on:
+  pull_request:
+    branches: [development, master]
+  push:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # El nombre del job es el del check obligatorio del ruleset: no renombrarlo.
+  ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Misma versión menor que el Dockerfile (python:3.12-slim).
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check
+
+      - name: Tests
+        run: pytest
+
+      - name: Auditoría de dependencias
+        run: pip-audit -r requirements.txt
+
+      # Sin push. El target por defecto es `runtime`, la imagen sin dependencias
+      # de desarrollo: es la que se mide.
+      - name: Build de la imagen
+        run: docker build -t nutria-ia:ci .
+
+      # Sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
+      - name: Tamaño de la imagen (< 0,5 GB)
+        run: |
+          size=$(docker image inspect nutria-ia:ci --format '{{.Size}}')
+          limit=500000000
+          echo "Imagen nutria-ia: $((size / 1000000)) MB (límite $((limit / 1000000)) MB)"
+          if [ "$size" -ge "$limit" ]; then
+            echo "::error::La imagen pesa $((size / 1000000)) MB y supera el límite de $((limit / 1000000)) MB"
+            exit 1
+          fi

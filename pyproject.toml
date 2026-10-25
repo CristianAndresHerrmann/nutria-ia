@@ -1,0 +1,14 @@
+# Solo configuración de herramientas; las dependencias viven en requirements*.txt.
+
+[tool.pytest.ini_options]
+# Sin esto, `pytest` suelto no encuentra el paquete `app`.
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+# El bit de ejecución lo pone el checkout en Windows al copiar al contenedor; en
+# git los archivos son 644. Sin esto, `ruff check` falla en local y no en la CI.
+ignore = ["EXE002"]
