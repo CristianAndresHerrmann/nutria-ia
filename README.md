@@ -26,6 +26,10 @@ Esta disposición es necesaria porque el `docker-compose.yml` de `nutria-backend
 
 - `app/main.py` — instancia de la aplicación FastAPI y registro de routers.
 - `app/api/` — un módulo por router.
+- `app/schemas/` — contratos Pydantic de entrada y salida.
+- `app/services/` — orquestación de cada generación (prompt, proveedor y validación de la respuesta).
+- `app/providers/` — interfaz común de proveedor y sus implementaciones (hoy, el simulado).
+- `app/prompts/templates/` — plantillas de prompt, un archivo por versión. Una versión publicada no se edita: un cambio de texto va en un archivo nuevo, y `tests/test_prompts.py` lo controla.
 - `run.py` — punto de entrada para levantar el servidor con un solo comando.
 - `requirements.txt` — dependencias del servicio.
 - `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, httpx, ruff, pip-audit). No entran en la imagen de runtime.
@@ -44,6 +48,14 @@ cp .env.example .env
 
 `PORT` es el puerto del servicio; `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL`
 configuran el proveedor externo de IA y no se versionan con valor.
+
+| Variable | Default | Uso |
+|---|---|---|
+| `AI_PROVIDER` | `fake` | Proveedor que responde las generaciones. Hoy solo existe `fake`, el simulado. Un valor desconocido impide que el servicio arranque. |
+| `AI_PROVIDER_TIMEOUT_SECONDS` | `25` | Tiempo máximo de espera al proveedor. Pasado ese tiempo, la generación responde `504 PROVIDER_TIMEOUT`. El tiempo máximo del backend para esta llamada tiene que ser mayor. |
+| `FAKE_PROVIDER_SCENARIO` | `ok` | Solo con `AI_PROVIDER=fake`. `invalid_output`, `timeout` o `provider_error` hacen que cada generación termine en ese error controlado, para probar el manejo de errores del backend contra el stack real. |
+
+Las tres tienen default, así que un `.env` anterior sigue funcionando sin cambios.
 
 ## Cómo ejecutar
 
