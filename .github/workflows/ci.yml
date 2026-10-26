@@ -6,10 +6,12 @@ name: CI
 # dispara el workflow quedaría bloqueado esperando un check que nunca llega.
 on:
   pull_request:
-    branches: [development, master]
+    branches: [development, staging, master]
   push:
     branches: [development]
   workflow_dispatch:
+  # Lo reutiliza cd-staging.yml: si el CI falla, no se despliega.
+  workflow_call:
 
 permissions:
   contents: read
