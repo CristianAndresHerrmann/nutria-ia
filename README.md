@@ -32,7 +32,7 @@ Esta disposición es necesaria porque el `docker-compose.yml` de `nutria-backend
 - `tests/` — tests de pytest.
 - `pyproject.toml` — configuración de pytest y ruff (las dependencias no van acá).
 - `Dockerfile` — imagen de este servicio, en etapas: `runtime` (la última, la que usa el `docker-compose.yml` de `nutria-backend`) y `test`, que suma `requirements-dev.txt` y `tests/` para `npm run test:ia`.
-- `.github/workflows/ci.yml` — integración continua (ver "Integración continua").
+- `.github/workflows/ci.yml` — integración continua (ver "Integración continua"); `cd-staging.yml` — despliegue a staging (ver "Despliegue en staging").
 
 ## Variables de entorno
 
@@ -62,9 +62,9 @@ Para levantar el stack completo con Docker (frontend + backend + ia + postgres +
 
 ## Integración continua
 
-`.github/workflows/ci.yml` corre en cada PR hacia `development` o `master`, en cada
+`.github/workflows/ci.yml` corre en cada PR hacia `development`, `staging` o `master`, en cada
 push a `development` y a mano desde la pestaña Actions (`workflow_dispatch`). El job
-se llama `ci` y es el check obligatorio del ruleset de `development` y `master`: un
+se llama `ci` y es el check obligatorio del ruleset de `development`, `staging` y `master`: un
 PR no se puede mergear con ese check en rojo.
 
 No usa secrets ni variables de GitHub: ningún test llama al proveedor externo de IA.
@@ -82,6 +82,14 @@ contenedor de la etapa `test`; `C` abrevia `docker compose -f nutria-backend/doc
 | `docker build` (sin push) y tamaño menor a 0,5 GB | `docker build -t nutria-ia:local nutria-ia` y `docker image inspect nutria-ia:local --format '{{.Size}}'` (bytes; el límite es 500 000 000). |
 
 El límite de tamaño sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
+
+## Despliegue en staging
+
+Un push a `staging` dispara `.github/workflows/cd-staging.yml`: corre el CI y, si
+pasa, despliega el servicio `ia` en la VM de staging. En staging el servicio no tiene
+ruta pública: el smoke test lo verifica a través del backend (`/health/ia`). Cómo
+funciona, la configuración del Environment `staging` y la operación de la VM: README
+de `nutria-backend`, sección "Staging".
 
 ## Stack
 

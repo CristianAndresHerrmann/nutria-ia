@@ -1,0 +1,66 @@
+# CD a staging (nutria-ia). Corre el CI del repo y, si pasa, despliega el servicio
+# `ia` en la VM de OCI y verifica que responde por HTTPS. Variables y secrets
+# viven en el Environment `staging`; qué se ejecuta en la VM lo decide
+# nutria-backend/scripts/deploy-staging.sh (forced command de la clave de despliegue).
+name: CD staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un despliegue a la vez por repo, sin cancelar el que está en curso. Entre repos
+# los serializa el lock del script de la VM.
+concurrency:
+  group: cd-staging
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+
+    steps:
+      - name: Clave SSH
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # El argumento es lo único que llega al forced command: el servicio a desplegar.
+      - name: Desplegar en la VM
+        env:
+          SSH_USER: ${{ vars.STAGING_SSH_USER }}
+          SSH_HOST: ${{ vars.STAGING_HOST }}
+        run: >-
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes
+          -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" ia
+
+      # Con reintentos: tras el despliegue el contenedor arranca (el backend además
+      # migra) y Traefik puede estar pidiendo el certificado.
+      - name: Smoke test
+        env:
+          DOMAIN: ${{ vars.STAGING_DOMAIN }}
+        run: |
+          check() {
+            for _ in $(seq 1 36); do
+              if curl -fsS --max-time 10 -o /dev/null "$1"; then echo "OK $1"; return 0; fi
+              sleep 5
+            done
+            echo "::error::$1 no respondió"
+            return 1
+          }
+          # La IA no tiene ruta pública: se verifica a través del backend.
+          check "https://api.$DOMAIN/health/ia"
