@@ -37,6 +37,7 @@ class FoodCategoryType(StrEnum):
     vegetable = "vegetable"
     healthy_fat = "healthy_fat"
     infusion = "infusion"
+    complementary = "complementary"
 
 
 class CookingMethod(StrEnum):
@@ -116,7 +117,7 @@ class CatalogFood(ContractModel):
     code: Code
     name: Name
     group_code: Code
-    categories: list[FoodCategoryType] = Field(default_factory=list, max_length=6)
+    categories: list[FoodCategoryType] = Field(default_factory=list, max_length=7)
 
 
 class Catalog(ContractModel):

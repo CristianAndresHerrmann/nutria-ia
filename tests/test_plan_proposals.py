@@ -111,6 +111,18 @@ def test_solicitud_minima_tambien_genera_propuesta_valida():
     assert [meal["meal_type"] for meal in response.json()["proposal"]["meals"]] == ["dinner"]
 
 
+def test_catalogo_con_alimento_complementario_es_valido():
+    use_provider(FakeProvider())
+    body = {
+        "meal_types": ["dinner"],
+        "catalog": {"food_groups": [{"code": "G1", "name": "Sal, especias y hierbas"}],
+                    "foods": [{"code": "A1", "name": "Sal fina", "group_code": "G1",
+                               "categories": ["complementary"]}]},
+    }
+
+    assert post(body).status_code == 200
+
+
 # --- Entrada fuera del contrato: 422 sin llamar al proveedor (RNF-07) ------------
 
 
