@@ -34,6 +34,8 @@ Esta disposición es necesaria porque el `docker-compose.yml` de `nutria-backend
 - `requirements.txt` — dependencias del servicio.
 - `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, httpx, ruff, pip-audit). No entran en la imagen de runtime.
 - `tests/` — tests de pytest.
+- `contracts/openapi.json` — contrato OpenAPI versionado; pytest verifica que coincida con el generado por FastAPI.
+- `scripts/export_openapi.py` — exporta ese contrato para actualizar las copias de IA y backend.
 - `pyproject.toml` — configuración de pytest y ruff (las dependencias no van acá).
 - `Dockerfile` — imagen de este servicio, en etapas: `runtime` (la última, la que usa el `docker-compose.yml` de `nutria-backend`) y `test`, que suma `requirements-dev.txt` y `tests/` para `npm run test:ia`.
 - `.github/workflows/ci.yml` — integración continua (ver "Integración continua"); `cd-staging.yml` — despliegue a staging (ver "Despliegue en staging").
@@ -103,6 +105,13 @@ contenedor de la etapa `test`; `C` abrevia `docker compose -f nutria-backend/doc
 | `docker build` (sin push) y tamaño menor a 0,5 GB | `docker build -t nutria-ia:local nutria-ia` y `docker image inspect nutria-ia:local --format '{{.Size}}'` (bytes; el límite es 500 000 000). |
 
 El límite de tamaño sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
+
+Cuando cambie intencionalmente el contrato, revisar la compatibilidad y ejecutar
+`npm run contract:ia:update` desde la carpeta raíz `nutria/`: genera el OpenAPI
+actual en este repo y en `nutria-backend`, dentro de Docker. Después ejecutar
+`npm run test:ia` y `npm run test:backend` desde esa raíz. Las suites comprueban las
+copias sin regenerarlas; cada CI funciona con su propio checkout. Los cambios del
+contrato requieren actualizar ambos repos de forma coordinada antes de desplegar.
 
 ## Despliegue en staging
 

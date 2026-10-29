@@ -6,6 +6,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Added
 
+- AUD-004: contrato OpenAPI versionado y test que exige actualizarlo si cambia lo publicado por FastAPI. `scripts/export_openapi.py`, ejecutado por `npm run contract:ia:update` desde `nutria/`, actualiza las copias de IA y backend dentro de Docker; la exportación no entra en la imagen de runtime.
+
 - `POST /plan-proposals` (T33; DA-28): genera una propuesta de plan alimentario a partir del contexto anonimizado del paciente.
   - **Entrada:** contrato Pydantic estricto (`extra="forbid"`). Un campo no declarado, un tipo de comida desconocido o repetido, un código de catálogo repetido o un grupo inexistente dan `422` sin llamar al proveedor (RNF-07). El catálogo y las recetas candidatas viajan con códigos cortos, nunca con UUID.
   - **Salida:** seis textos (sin recomendaciones clínicas) y comidas → opciones → ítems. Cada ítem referencia un código de catálogo, un código de receta o es texto libre marcado, sin cantidades (RF-35). La respuesta informa la versión de la plantilla, el proveedor, el modelo, la duración y los tokens.

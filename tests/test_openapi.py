@@ -1,8 +1,19 @@
+import json
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from app.main import app
 
 client = TestClient(app)
+
+
+def test_el_openapi_versionado_coincide_con_el_servicio():
+    snapshot = Path(__file__).resolve().parents[1] / "contracts" / "openapi.json"
+    assert client.get("/openapi.json").json() == json.loads(snapshot.read_text(encoding="utf-8")), (
+        "Cambió el contrato de IA. Revisar compatibilidad y ejecutar "
+        "npm run contract:ia:update desde nutria/; verificar también los tests del backend."
+    )
 
 
 def test_el_contrato_de_plan_proposals_figura_en_el_spec():
