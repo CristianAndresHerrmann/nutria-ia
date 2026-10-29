@@ -20,6 +20,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 - `FoodCategoryType` suma `complementary` (T28; DA-32), igual que el enum de `schema.prisma` del backend. Sin este valor, un catálogo con un alimento complementario (azúcar, sal, condimentos, grasas sólidas, agua) daba `422` en cada generación. Las categorías de un alimento admiten hasta 7 valores.
 
+### Fixed
+
+- AUD-003: `python run.py` inicia Uvicorn sin recarga automática, incluida la imagen de runtime usada en staging. La recarga para desarrollo se activa con un comando explícito. Se elimina `PORT` de `.env.example` porque el servicio usa el puerto interno fijo 8000.
+
 ## [0.0.1] - 2026-09-30
 
 Incremento 1 (ver `docs/cierre-incremento-1.md` en el repo raíz).

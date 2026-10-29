@@ -46,8 +46,9 @@ Copiar `.env.example` a `.env` (no se versiona) antes de ejecutar:
 cp .env.example .env
 ```
 
-`PORT` es el puerto del servicio; `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL`
-configuran el proveedor externo de IA y no se versionan con valor.
+El servicio escucha en el puerto 8000, igual que el puerto interno configurado en
+Docker y Traefik. `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL` están reservadas
+para el proveedor externo de IA y no se versionan con valor.
 
 | Variable | Default | Uso |
 |---|---|---|
@@ -69,6 +70,14 @@ python run.py
 
 El servicio queda disponible en `http://localhost:8000`; `GET /health` sirve para
 verificar que está arriba y `/docs` abre la documentación automática de FastAPI.
+
+`python run.py` inicia Uvicorn sin recarga automática, tanto en local como en la
+imagen de runtime usada en staging. Para desarrollar con recarga, ejecutar
+explícitamente:
+
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
 Para levantar el stack completo con Docker (frontend + backend + ia + postgres + proxy) con un solo comando, ver la sección "Cómo ejecutar todo el stack con Docker Compose" en el README de `nutria-backend`. En ese modo el servicio se accede como `http://ia.local.nutria.com` (virtual host servido por Traefik).
 
