@@ -17,6 +17,8 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 
 COPY pyproject.toml .
 COPY tests ./tests
+COPY contracts ./contracts
+COPY scripts ./scripts
 
 CMD ["pytest"]
 

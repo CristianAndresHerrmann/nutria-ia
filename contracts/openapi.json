@@ -1,0 +1,1188 @@
+{
+  "components": {
+    "schemas": {
+      "CandidateRecipe": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Code",
+            "type": "string"
+          },
+          "cooking_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CookingMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "meal_types": {
+            "items": {
+              "$ref": "#/components/schemas/MealType"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Meal Types",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "time_minutes": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1440.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Minutes"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "meal_types"
+        ],
+        "title": "CandidateRecipe",
+        "type": "object"
+      },
+      "Catalog": {
+        "additionalProperties": false,
+        "description": "Subconjunto del catálogo permitido para el paciente, ya sin los alimentos\nrechazados (RF-37). Lo arma el backend.",
+        "properties": {
+          "food_groups": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogFoodGroup"
+            },
+            "maxItems": 500,
+            "title": "Food Groups",
+            "type": "array"
+          },
+          "foods": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogFood"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "title": "Foods",
+            "type": "array"
+          }
+        },
+        "required": [
+          "foods"
+        ],
+        "title": "Catalog",
+        "type": "object"
+      },
+      "CatalogFood": {
+        "additionalProperties": false,
+        "properties": {
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/FoodCategoryType"
+            },
+            "maxItems": 7,
+            "title": "Categories",
+            "type": "array"
+          },
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Code",
+            "type": "string"
+          },
+          "group_code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Group Code",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "group_code"
+        ],
+        "title": "CatalogFood",
+        "type": "object"
+      },
+      "CatalogFoodGroup": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "CatalogFoodGroup",
+        "type": "object"
+      },
+      "Condition": {
+        "additionalProperties": false,
+        "description": "Condición del paciente, solo con el nombre de la patología, alimento o grupo.\n\nLas observaciones no viajan: son texto libre y pueden traer datos personales.",
+        "properties": {
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ConditionType"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "title": "Condition",
+        "type": "object"
+      },
+      "ConditionType": {
+        "enum": [
+          "pathology",
+          "allergy",
+          "intolerance",
+          "rejection",
+          "preference"
+        ],
+        "title": "ConditionType",
+        "type": "string"
+      },
+      "ContractViolation": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Msg",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg"
+        ],
+        "title": "ContractViolation",
+        "type": "object"
+      },
+      "CookingContext": {
+        "additionalProperties": false,
+        "description": "Contexto de cocina (RF-08).",
+        "properties": {
+          "cooking_time": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cooking Time"
+          },
+          "cooks": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cooks"
+          },
+          "home_equipment": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Equipment"
+          },
+          "likes_cooking": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likes Cooking"
+          },
+          "usual_shopping_place": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usual Shopping Place"
+          }
+        },
+        "title": "CookingContext",
+        "type": "object"
+      },
+      "CookingMethod": {
+        "enum": [
+          "oven",
+          "stovetop",
+          "microwave",
+          "no_cooking"
+        ],
+        "title": "CookingMethod",
+        "type": "string"
+      },
+      "FoodCategoryType": {
+        "enum": [
+          "protein",
+          "carbohydrate",
+          "fiber",
+          "vegetable",
+          "healthy_fat",
+          "infusion",
+          "complementary"
+        ],
+        "title": "FoodCategoryType",
+        "type": "string"
+      },
+      "FoodGroupItem": {
+        "additionalProperties": false,
+        "description": "Referencia genérica, como \"una fruta\".",
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "food_group",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "code"
+        ],
+        "title": "FoodGroupItem",
+        "type": "object"
+      },
+      "FoodItem": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "food",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "code"
+        ],
+        "title": "FoodItem",
+        "type": "object"
+      },
+      "FreeTextItem": {
+        "additionalProperties": false,
+        "description": "Lo que el modelo no encontró en el catálogo. El backend lo guarda como ítem no\nreconocido con el texto original (DA-26).",
+        "properties": {
+          "text": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "type": {
+            "const": "free_text",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "FreeTextItem",
+        "type": "object"
+      },
+      "GenerationErrorBody": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/GenerationErrorCode"
+          },
+          "details": {
+            "$ref": "#/components/schemas/GenerationErrorDetails"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "details"
+        ],
+        "title": "GenerationErrorBody",
+        "type": "object"
+      },
+      "GenerationErrorCode": {
+        "enum": [
+          "PROVIDER_TIMEOUT",
+          "PROVIDER_ERROR",
+          "INVALID_PROVIDER_OUTPUT"
+        ],
+        "title": "GenerationErrorCode",
+        "type": "string"
+      },
+      "GenerationErrorDetails": {
+        "properties": {
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ContractViolation"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Solo en INVALID_PROVIDER_OUTPUT: qué parte de la respuesta no respeta el contrato.",
+            "title": "Errors"
+          },
+          "generation": {
+            "$ref": "#/components/schemas/GenerationInfo"
+          }
+        },
+        "required": [
+          "generation"
+        ],
+        "title": "GenerationErrorDetails",
+        "type": "object"
+      },
+      "GenerationErrorResponse": {
+        "description": "Mismo formato que los errores del backend: { error: { code, message, details } }.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/GenerationErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "GenerationErrorResponse",
+        "type": "object"
+      },
+      "GenerationInfo": {
+        "description": "Datos de la llamada al proveedor que el backend registra en ai_generation\n(RF-41, RNF-11).",
+        "properties": {
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "raw_response": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Respuesta cruda del proveedor. Null solo si no respondió (timeout o falla).",
+            "title": "Raw Response"
+          },
+          "template_version": {
+            "title": "Template Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "template_version",
+          "duration_ms"
+        ],
+        "title": "GenerationInfo",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Habits": {
+        "additionalProperties": false,
+        "description": "Hábitos (RF-06).",
+        "properties": {
+          "alcohol": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alcohol"
+          },
+          "meal_schedule": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal Schedule"
+          },
+          "physical_activity": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Physical Activity"
+          },
+          "sleep_schedule": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Schedule"
+          },
+          "smoking": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smoking"
+          }
+        },
+        "title": "Habits",
+        "type": "object"
+      },
+      "MealType": {
+        "enum": [
+          "breakfast",
+          "lunch",
+          "afternoon_snack",
+          "dinner"
+        ],
+        "title": "MealType",
+        "type": "string"
+      },
+      "OutsideHomeContext": {
+        "additionalProperties": false,
+        "description": "Comidas fuera del hogar y medios para conservarlas o calentarlas (RF-09).",
+        "properties": {
+          "meals_outside_home": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meals Outside Home"
+          },
+          "outside_equipment": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outside Equipment"
+          }
+        },
+        "title": "OutsideHomeContext",
+        "type": "object"
+      },
+      "PlanProposal": {
+        "additionalProperties": false,
+        "description": "Propuesta del modelo (RF-34). Las recomendaciones clínicas no están: salen del\ncatálogo que elige el profesional (DA-16), no las redacta la IA (DA-28).",
+        "properties": {
+          "contextual_recommendations": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Contextual Recommendations",
+            "type": "string"
+          },
+          "general_recommendations": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "General Recommendations",
+            "type": "string"
+          },
+          "introduction": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Introduction",
+            "type": "string"
+          },
+          "meals": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedMeal"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Meals",
+            "type": "array"
+          },
+          "objectives": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Objectives",
+            "type": "string"
+          },
+          "situational_diagnosis": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Situational Diagnosis",
+            "type": "string"
+          },
+          "thematic_recommendations": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Thematic Recommendations",
+            "type": "string"
+          }
+        },
+        "required": [
+          "situational_diagnosis",
+          "introduction",
+          "objectives",
+          "general_recommendations",
+          "contextual_recommendations",
+          "thematic_recommendations",
+          "meals"
+        ],
+        "title": "PlanProposal",
+        "type": "object"
+      },
+      "PlanProposalRequest": {
+        "additionalProperties": false,
+        "examples": [
+          {
+            "candidate_recipes": [
+              {
+                "code": "R1",
+                "cooking_method": "oven",
+                "meal_types": [
+                  "lunch",
+                  "dinner"
+                ],
+                "name": "Tarta de verduras sin TACC",
+                "time_minutes": 40
+              }
+            ],
+            "catalog": {
+              "food_groups": [
+                {
+                  "code": "G1",
+                  "name": "Frutas"
+                },
+                {
+                  "code": "G2",
+                  "name": "Verduras"
+                },
+                {
+                  "code": "G3",
+                  "name": "Carnes"
+                },
+                {
+                  "code": "G4",
+                  "name": "Cereales sin TACC"
+                },
+                {
+                  "code": "G5",
+                  "name": "Lácteos"
+                },
+                {
+                  "code": "G6",
+                  "name": "Infusiones"
+                }
+              ],
+              "foods": [
+                {
+                  "categories": [
+                    "fiber"
+                  ],
+                  "code": "A1",
+                  "group_code": "G1",
+                  "name": "Manzana"
+                },
+                {
+                  "categories": [
+                    "vegetable",
+                    "fiber"
+                  ],
+                  "code": "A2",
+                  "group_code": "G2",
+                  "name": "Zanahoria"
+                },
+                {
+                  "categories": [
+                    "vegetable"
+                  ],
+                  "code": "A3",
+                  "group_code": "G2",
+                  "name": "Zapallito"
+                },
+                {
+                  "categories": [
+                    "protein"
+                  ],
+                  "code": "A4",
+                  "group_code": "G3",
+                  "name": "Pollo"
+                },
+                {
+                  "categories": [
+                    "protein"
+                  ],
+                  "code": "A5",
+                  "group_code": "G3",
+                  "name": "Merluza"
+                },
+                {
+                  "categories": [
+                    "carbohydrate"
+                  ],
+                  "code": "A6",
+                  "group_code": "G4",
+                  "name": "Arroz"
+                },
+                {
+                  "categories": [
+                    "protein"
+                  ],
+                  "code": "A7",
+                  "group_code": "G5",
+                  "name": "Yogur natural"
+                },
+                {
+                  "categories": [
+                    "infusion"
+                  ],
+                  "code": "A8",
+                  "group_code": "G6",
+                  "name": "Té"
+                }
+              ]
+            },
+            "conditions": [
+              {
+                "name": "Celiaquía",
+                "type": "pathology"
+              },
+              {
+                "name": "Pescado",
+                "type": "preference"
+              }
+            ],
+            "cooking": {
+              "cooking_time": "30 minutos por día",
+              "cooks": true,
+              "home_equipment": "Horno y microondas",
+              "likes_cooking": false,
+              "usual_shopping_place": "Supermercado del barrio"
+            },
+            "habits": {
+              "alcohol": "Ocasional",
+              "meal_schedule": "Desayuno 7, almuerzo 13, merienda 17, cena 21",
+              "physical_activity": "Camina 30 minutos tres veces por semana",
+              "sleep_schedule": "De 23 a 6:30",
+              "smoking": "No fuma"
+            },
+            "meal_types": [
+              "breakfast",
+              "lunch",
+              "afternoon_snack",
+              "dinner"
+            ],
+            "outside_home": {
+              "meals_outside_home": "Almuerza en el trabajo",
+              "outside_equipment": "Heladera y microondas"
+            },
+            "work": {
+              "occupation": "Empleo administrativo",
+              "work_context": "Horario fijo de 8 a 16"
+            }
+          }
+        ],
+        "properties": {
+          "candidate_recipes": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateRecipe"
+            },
+            "maxItems": 200,
+            "title": "Candidate Recipes",
+            "type": "array"
+          },
+          "catalog": {
+            "$ref": "#/components/schemas/Catalog"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/Condition"
+            },
+            "maxItems": 100,
+            "title": "Conditions",
+            "type": "array"
+          },
+          "cooking": {
+            "$ref": "#/components/schemas/CookingContext"
+          },
+          "habits": {
+            "$ref": "#/components/schemas/Habits"
+          },
+          "meal_types": {
+            "items": {
+              "$ref": "#/components/schemas/MealType"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Meal Types",
+            "type": "array"
+          },
+          "outside_home": {
+            "$ref": "#/components/schemas/OutsideHomeContext"
+          },
+          "work": {
+            "$ref": "#/components/schemas/WorkContext"
+          }
+        },
+        "required": [
+          "meal_types",
+          "catalog"
+        ],
+        "title": "PlanProposalRequest",
+        "type": "object"
+      },
+      "PlanProposalResponse": {
+        "properties": {
+          "generation": {
+            "$ref": "#/components/schemas/GenerationInfo"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/PlanProposal"
+          }
+        },
+        "required": [
+          "proposal",
+          "generation"
+        ],
+        "title": "PlanProposalResponse",
+        "type": "object"
+      },
+      "ProposedMeal": {
+        "additionalProperties": false,
+        "properties": {
+          "instructions": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedOption"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Options",
+            "type": "array"
+          }
+        },
+        "required": [
+          "meal_type",
+          "options"
+        ],
+        "title": "ProposedMeal",
+        "type": "object"
+      },
+      "ProposedOption": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "items": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "food": "#/components/schemas/FoodItem",
+                  "food_group": "#/components/schemas/FoodGroupItem",
+                  "free_text": "#/components/schemas/FreeTextItem",
+                  "recipe": "#/components/schemas/RecipeItem"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FoodItem"
+                },
+                {
+                  "$ref": "#/components/schemas/FoodGroupItem"
+                },
+                {
+                  "$ref": "#/components/schemas/RecipeItem"
+                },
+                {
+                  "$ref": "#/components/schemas/FreeTextItem"
+                }
+              ]
+            },
+            "maxItems": 15,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ProposedOption",
+        "type": "object"
+      },
+      "RecipeItem": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "recipe",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "code"
+        ],
+        "title": "RecipeItem",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WorkContext": {
+        "additionalProperties": false,
+        "description": "Ocupación y contexto laboral, con regularidad de horarios (RF-10).",
+        "properties": {
+          "occupation": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occupation"
+          },
+          "work_context": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Context"
+          }
+        },
+        "title": "WorkContext",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Servicio de generación asistida de NutrIA. Recibe un contexto anonimizado y devuelve una propuesta estructurada. No accede a la base ni aplica reglas clínicas.",
+    "title": "nutria-ia",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "get_health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Health"
+      }
+    },
+    "/plan-proposals": {
+      "post": {
+        "description": "Recibe el contexto anonimizado del paciente y devuelve una propuesta por tipo de comida, con opciones e ítems que referencian el catálogo enviado. La propuesta no está validada clínicamente: la valida el motor de reglas del backend y la revisa el profesional.",
+        "operationId": "create_plan_proposal_plan_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationErrorResponse"
+                }
+              }
+            },
+            "description": "PROVIDER_ERROR (falla del proveedor) o INVALID_PROVIDER_OUTPUT (la respuesta no respeta el contrato). Recuperable: se puede reintentar."
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationErrorResponse"
+                }
+              }
+            },
+            "description": "PROVIDER_TIMEOUT: el proveedor no respondió a tiempo. Recuperable: se puede reintentar."
+          }
+        },
+        "summary": "Genera una propuesta de plan alimentario"
+      }
+    }
+  }
+}
