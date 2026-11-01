@@ -28,11 +28,11 @@ Esta disposición es necesaria porque el `docker-compose.yml` de `nutria-backend
 - `app/api/` — un módulo por router.
 - `app/schemas/` — contratos Pydantic de entrada y salida.
 - `app/services/` — orquestación de cada generación (prompt, proveedor y validación de la respuesta).
-- `app/providers/` — interfaz común de proveedor y sus implementaciones (hoy, el simulado).
+- `app/providers/` — interfaz común de proveedor y sus implementaciones: el simulado y los adaptadores de Gemini y OpenAI, más el JSON Schema de salida estructurada que se les pide.
 - `app/prompts/templates/` — plantillas de prompt, un archivo por versión. Una versión publicada no se edita: un cambio de texto va en un archivo nuevo, y `tests/test_prompts.py` lo controla.
 - `run.py` — punto de entrada para levantar el servidor con un solo comando.
 - `requirements.txt` — dependencias del servicio.
-- `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, httpx, ruff, pip-audit). No entran en la imagen de runtime.
+- `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, jsonschema, ruff, pip-audit). No entran en la imagen de runtime.
 - `tests/` — tests de pytest.
 - `contracts/openapi.json` — contrato OpenAPI versionado; pytest verifica que coincida con el generado por FastAPI.
 - `scripts/export_openapi.py` — exporta ese contrato para actualizar las copias de IA y backend.
@@ -49,16 +49,22 @@ cp .env.example .env
 ```
 
 El servicio escucha en el puerto 8000, igual que el puerto interno configurado en
-Docker y Traefik. `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL` están reservadas
-para el proveedor externo de IA y no se versionan con valor.
+Docker y Traefik. Las claves de API van solo en `.env` (local o de la VM de staging) y
+nunca se versionan con valor.
 
 | Variable | Default | Uso |
 |---|---|---|
-| `AI_PROVIDER` | `fake` | Proveedor que responde las generaciones. Hoy solo existe `fake`, el simulado. Un valor desconocido impide que el servicio arranque. |
+| `AI_PROVIDER` | `fake` | Proveedor que responde las generaciones: `fake` (el simulado, sin llamadas externas), `gemini` u `openai`. Un valor desconocido impide que el servicio arranque. |
 | `AI_PROVIDER_TIMEOUT_SECONDS` | `25` | Tiempo máximo de espera al proveedor. Pasado ese tiempo, la generación responde `504 PROVIDER_TIMEOUT`. El tiempo máximo del backend para esta llamada tiene que ser mayor. |
 | `FAKE_PROVIDER_SCENARIO` | `ok` | Solo con `AI_PROVIDER=fake`. `invalid_output`, `timeout` o `provider_error` hacen que cada generación termine en ese error controlado, para probar el manejo de errores del backend contra el stack real. |
+| `AI_MODEL` | — | Obligatoria con `gemini` u `openai`: ID del modelo, por ejemplo `gemini-3.8-flash` o `gpt-6-luna`. |
+| `AI_REASONING_LEVEL` | `low` | Nivel de razonamiento. `gemini`: `minimal`, `low`, `medium` o `high`. `openai`: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` o `max`. Un valor fuera de esa lista impide que el servicio arranque; qué valores admite cada modelo lo decide su API. |
+| `GEMINI_API_KEY` | — | Obligatoria con `AI_PROVIDER=gemini`. Tiene que ser de un proyecto de Google Cloud con facturación activa (tier pago). |
+| `OPENAI_API_KEY` | — | Obligatoria con `AI_PROVIDER=openai`. |
 
-Las tres tienen default, así que un `.env` anterior sigue funcionando sin cambios.
+Con `AI_PROVIDER=fake` ninguna de las variables nuevas hace falta, así que un `.env`
+anterior sigue funcionando sin cambios. Con `gemini` u `openai`, si falta el modelo o
+la clave, el servicio no arranca.
 
 ## Cómo ejecutar
 
@@ -126,6 +132,7 @@ de `nutria-backend`, sección "Staging".
 - Python
 - FastAPI
 - Uvicorn
+- SDK de los proveedores de IA: `google-genai` y `openai`
 - pytest y ruff (desarrollo y CI)
 
 ## Repositorios relacionados
