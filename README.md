@@ -59,6 +59,7 @@ nunca se versionan con valor.
 | `FAKE_PROVIDER_SCENARIO` | `ok` | Solo con `AI_PROVIDER=fake`. `invalid_output`, `timeout` o `provider_error` hacen que cada generación termine en ese error controlado, para probar el manejo de errores del backend contra el stack real. |
 | `AI_MODEL` | — | Obligatoria con `gemini` u `openai`: ID del modelo, por ejemplo `gemini-3.8-flash` o `gpt-6-luna`. |
 | `AI_REASONING_LEVEL` | `low` | Nivel de razonamiento. `gemini`: `minimal`, `low`, `medium` o `high`. `openai`: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` o `max`. Un valor fuera de esa lista impide que el servicio arranque; qué valores admite cada modelo lo decide su API. |
+| `AI_PLAN_TEMPLATE` | `plan_proposal_v1` | Plantilla de prompt, entre las publicadas en `app/prompts/templates/`. Una que no existe impide que el servicio arranque. Sirve para comparar versiones; la traza de cada generación registra la que se usó. |
 | `GEMINI_API_KEY` | — | Obligatoria con `AI_PROVIDER=gemini`. Tiene que ser de un proyecto de Google Cloud con facturación activa (tier pago). |
 | `OPENAI_API_KEY` | — | Obligatoria con `AI_PROVIDER=openai`. |
 

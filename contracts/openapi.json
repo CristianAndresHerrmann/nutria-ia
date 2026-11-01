@@ -473,6 +473,7 @@
                 "type": "null"
               }
             ],
+            "description": "Incluye los tokens de razonamiento.",
             "title": "Output Tokens"
           },
           "provider": {
@@ -490,6 +491,18 @@
             ],
             "description": "Respuesta cruda del proveedor. Null solo si no respondió (timeout o falla).",
             "title": "Raw Response"
+          },
+          "reasoning_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Parte de output_tokens que el modelo usó para razonar. Null si el proveedor no la informa.",
+            "title": "Reasoning Tokens"
           },
           "template_version": {
             "title": "Template Version",

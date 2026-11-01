@@ -2,6 +2,8 @@ import os
 from dataclasses import dataclass, field
 from functools import cache
 
+from app.prompts import PLAN_PROPOSAL_TEMPLATE_VERSION
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -10,6 +12,7 @@ class Settings:
     fake_provider_scenario: str
     ai_model: str | None = None
     ai_reasoning_level: str = "low"
+    plan_template: str = PLAN_PROPOSAL_TEMPLATE_VERSION
     # Fuera del repr: un log de la configuración nunca imprime una clave (RNF-06).
     gemini_api_key: str | None = field(default=None, repr=False)
     openai_api_key: str | None = field(default=None, repr=False)
@@ -24,6 +27,7 @@ def get_settings() -> Settings:
         # `or None`: en el .env una variable sin valor llega como cadena vacía.
         ai_model=os.environ.get("AI_MODEL") or None,
         ai_reasoning_level=os.environ.get("AI_REASONING_LEVEL") or "low",
+        plan_template=os.environ.get("AI_PLAN_TEMPLATE") or PLAN_PROPOSAL_TEMPLATE_VERSION,
         gemini_api_key=os.environ.get("GEMINI_API_KEY") or None,
         openai_api_key=os.environ.get("OPENAI_API_KEY") or None,
     )

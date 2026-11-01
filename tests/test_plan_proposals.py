@@ -97,6 +97,17 @@ def test_la_respuesta_informa_la_version_de_plantilla_y_los_datos_de_la_generaci
     assert json.loads(generation["raw_response"])["meals"]
 
 
+def test_la_traza_registra_la_plantilla_elegida_por_configuracion():
+    use_provider(FakeProvider())
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        ai_provider="fake", provider_timeout_seconds=5, fake_provider_scenario="ok", plan_template="plan_proposal_v2"
+    )
+
+    generation = post(payload()).json()["generation"]
+
+    assert generation["template_version"] == "plan_proposal_v2"
+
+
 def test_solicitud_minima_tambien_genera_propuesta_valida():
     use_provider(FakeProvider())
     body = {

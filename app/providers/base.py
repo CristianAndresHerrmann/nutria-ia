@@ -8,7 +8,10 @@ from app.schemas.plan_proposal import PlanProposalRequest
 class ProviderOutput:
     text: str
     input_tokens: int | None = None
+    # Incluye los de razonamiento: se facturan como salida.
     output_tokens: int | None = None
+    # La parte de output_tokens que el modelo usó para razonar antes de responder.
+    reasoning_tokens: int | None = None
 
 
 class ProviderError(Exception):

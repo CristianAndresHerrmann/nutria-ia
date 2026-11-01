@@ -94,6 +94,8 @@ def test_respuesta_valida_devuelve_la_propuesta_con_los_datos_de_la_generacion()
     assert generation["model"] == "gpt-6-luna"
     assert generation["raw_response"] == valid_text
     assert (generation["input_tokens"], generation["output_tokens"]) == (900, 520)
+    # output_tokens ya incluye los de razonamiento; se informan además aparte.
+    assert generation["reasoning_tokens"] == 120
 
 
 def test_envia_solo_el_prompt_con_el_esquema_estricto_el_razonamiento_y_sin_guardar():
