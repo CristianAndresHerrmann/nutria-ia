@@ -6,6 +6,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Added
 
+- Adaptadores de Gemini y OpenAI (T36; insumo de DA-12), detrás de la interfaz común de proveedor. Fundamento y política de datos de cada API en `docs/decisiones/adaptadores-de-proveedores-de-ia.md` (repo raíz).
+  - **Configuración:** `AI_PROVIDER=gemini|openai`, con `AI_MODEL` y la clave del proveedor (`GEMINI_API_KEY`, `OPENAI_API_KEY`) solo en `.env` (RNF-06). Si falta el modelo o la clave, o el nivel de razonamiento no es válido, el servicio no arranca. Reemplazan a las reservadas `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL`.
+  - **Salida estructurada** con un JSON Schema derivado del contrato (`PlanProposal`) y reducido al modo estricto de ambos proveedores. El de Gemini va sin `maxItems`, porque con los límites anidados del contrato la API responde `400`. La validación estricta del servicio no cambia.
+  - **Razonamiento** configurable con `AI_REASONING_LEVEL`, `low` por defecto, por la meta de latencia.
+  - Al proveedor solo viaja el prompt renderizado (RNF-07). Los dos se llaman con `store=false`: OpenAI no guarda la respuesta y Gemini no registra la solicitud en el proyecto. Ningún SDK reintenta: el tiempo límite cubre la generación completa (RNF-02).
+  - Los errores del SDK se traducen a los errores controlados existentes: timeout → `PROVIDER_TIMEOUT`; error HTTP, de conexión, rechazo o respuesta sin texto → `PROVIDER_ERROR`; texto fuera de contrato (incluida una respuesta truncada) → `INVALID_PROVIDER_OUTPUT`. Los tokens de salida incluyen los de razonamiento en los dos.
+  - Tests con el cliente de cada proveedor simulado y respuestas del SDK reales, sin red ni claves.
 - AUD-004: contrato OpenAPI versionado y test que exige actualizarlo si cambia lo publicado por FastAPI. `scripts/export_openapi.py`, ejecutado por `npm run contract:ia:update` desde `nutria/`, actualiza las copias de IA y backend dentro de Docker; la exportación no entra en la imagen de runtime.
 
 - `POST /plan-proposals` (T33; DA-28): genera una propuesta de plan alimentario a partir del contexto anonimizado del paciente.
