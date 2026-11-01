@@ -63,10 +63,13 @@ class OpenAIProvider:
             raise ProviderFailureError("OpenAI respondió sin texto")
 
         usage = response.usage
+        details = usage.output_tokens_details if usage else None
         return ProviderOutput(
             text=response.output_text,
             input_tokens=usage.input_tokens if usage else None,
+            # output_tokens ya incluye los de razonamiento.
             output_tokens=usage.output_tokens if usage else None,
+            reasoning_tokens=details.reasoning_tokens if details else None,
         )
 
 

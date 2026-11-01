@@ -334,7 +334,11 @@ class GenerationInfo(BaseModel):
     template_version: str
     duration_ms: int
     input_tokens: int | None = None
-    output_tokens: int | None = None
+    output_tokens: int | None = Field(default=None, description="Incluye los tokens de razonamiento.")
+    reasoning_tokens: int | None = Field(
+        default=None,
+        description="Parte de output_tokens que el modelo usó para razonar. Null si el proveedor no la informa.",
+    )
     raw_response: str | None = Field(
         default=None, description="Respuesta cruda del proveedor. Null solo si no respondió (timeout o falla)."
     )

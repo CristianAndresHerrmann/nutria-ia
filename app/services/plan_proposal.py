@@ -43,19 +43,24 @@ _ERRORS = {
 
 
 async def generate_plan_proposal(
-    request: PlanProposalRequest, provider: PlanProvider, timeout_seconds: float
+    request: PlanProposalRequest,
+    provider: PlanProvider,
+    timeout_seconds: float,
+    template_version: str = PLAN_PROPOSAL_TEMPLATE_VERSION,
 ) -> PlanProposalResponse:
-    prompt = render_plan_prompt(request)
+    prompt = render_plan_prompt(request, template_version)
     started = time.perf_counter()
 
     try:
         output = await asyncio.wait_for(provider.generate(prompt, request), timeout=timeout_seconds)
     except (TimeoutError, ProviderTimeoutError):
-        raise _error(GenerationErrorCode.provider_timeout, _generation(provider, started)) from None
+        raise _error(
+            GenerationErrorCode.provider_timeout, _generation(provider, template_version, started)
+        ) from None
     except ProviderFailureError:
-        raise _error(GenerationErrorCode.provider_error, _generation(provider, started)) from None
+        raise _error(GenerationErrorCode.provider_error, _generation(provider, template_version, started)) from None
 
-    generation = _generation(provider, started, output)
+    generation = _generation(provider, template_version, started, output)
     try:
         proposal = PlanProposal.model_validate_json(output.text, strict=True)
     except ValidationError as exc:
@@ -73,14 +78,17 @@ async def generate_plan_proposal(
     return PlanProposalResponse(proposal=proposal, generation=generation)
 
 
-def _generation(provider: PlanProvider, started: float, output: ProviderOutput | None = None) -> GenerationInfo:
+def _generation(
+    provider: PlanProvider, template_version: str, started: float, output: ProviderOutput | None = None
+) -> GenerationInfo:
     return GenerationInfo(
         provider=provider.name,
         model=provider.model,
-        template_version=PLAN_PROPOSAL_TEMPLATE_VERSION,
+        template_version=template_version,
         duration_ms=round((time.perf_counter() - started) * 1000),
         input_tokens=output.input_tokens if output else None,
         output_tokens=output.output_tokens if output else None,
+        reasoning_tokens=output.reasoning_tokens if output else None,
         raw_response=output.text if output else None,
     )
 
@@ -105,7 +113,7 @@ def _trace(result: str, generation: GenerationInfo) -> None:
     # ai_generation, junto al plan.
     logger.info(
         "plan_proposal result=%s provider=%s model=%s template_version=%s duration_ms=%d "
-        "input_tokens=%s output_tokens=%s",
+        "input_tokens=%s output_tokens=%s reasoning_tokens=%s",
         result,
         generation.provider,
         generation.model,
@@ -113,4 +121,5 @@ def _trace(result: str, generation: GenerationInfo) -> None:
         generation.duration_ms,
         generation.input_tokens,
         generation.output_tokens,
+        generation.reasoning_tokens,
     )

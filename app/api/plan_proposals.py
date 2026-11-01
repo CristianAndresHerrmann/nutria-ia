@@ -39,4 +39,6 @@ async def create_plan_proposal(
     provider: Annotated[PlanProvider, Depends(get_provider)],
     settings: Annotated[Settings, Depends(get_settings)],
 ):
-    return await generate_plan_proposal(request, provider, settings.provider_timeout_seconds)
+    return await generate_plan_proposal(
+        request, provider, settings.provider_timeout_seconds, settings.plan_template
+    )

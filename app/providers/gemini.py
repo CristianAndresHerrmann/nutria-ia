@@ -87,6 +87,7 @@ class GeminiProvider:
             input_tokens=usage.prompt_token_count if usage else None,
             # Incluye los tokens de razonamiento, como OpenAI: se facturan como salida.
             output_tokens=_sum(usage.candidates_token_count, usage.thoughts_token_count) if usage else None,
+            reasoning_tokens=usage.thoughts_token_count if usage else None,
         )
 
 

@@ -76,6 +76,7 @@ def test_los_tokens_de_salida_incluyen_los_de_razonamiento():
 
     assert output.input_tokens == 900
     assert output.output_tokens == 520
+    assert output.reasoning_tokens == 120
 
 
 def test_envia_solo_el_prompt_con_el_esquema_estricto_y_el_razonamiento_configurado():

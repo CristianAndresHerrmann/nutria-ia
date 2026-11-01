@@ -6,6 +6,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Added
 
+- Tokens de razonamiento y plantilla seleccionable (T41, para atribuir y reducir el tiempo de la generación). Resultados en `docs/mediciones-de-generacion/` (repo raíz).
+  - `generation.reasoning_tokens` en la respuesta y en los errores con traza: la parte de `output_tokens` que el modelo usó para razonar (OpenAI `output_tokens_details.reasoning_tokens`; Gemini `thoughts_token_count`). `null` si el proveedor no la informa. El contrato versionado (`contracts/openapi.json`) y su copia en el backend se actualizaron con `npm run contract:ia:update`.
+  - `AI_PLAN_TEMPLATE` elige la plantilla entre las publicadas (`plan_proposal_v1` por defecto). Una que no existe impide arrancar. La traza registra la versión usada.
+  - Plantilla `plan_proposal_v2`: la v1 con 2 o 3 opciones por comida y textos de hasta dos oraciones. Publicada para medir; la vigente sigue siendo la v1.
+
 - Adaptadores de Gemini y OpenAI (T36; insumo de DA-12), detrás de la interfaz común de proveedor. Fundamento y política de datos de cada API en `docs/decisiones/adaptadores-de-proveedores-de-ia.md` (repo raíz).
   - **Configuración:** `AI_PROVIDER=gemini|openai`, con `AI_MODEL` y la clave del proveedor (`GEMINI_API_KEY`, `OPENAI_API_KEY`) solo en `.env` (RNF-06). Si falta el modelo o la clave, o el nivel de razonamiento no es válido, el servicio no arranca. Reemplazan a las reservadas `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL`.
   - **Salida estructurada** con un JSON Schema derivado del contrato (`PlanProposal`) y reducido al modo estricto de ambos proveedores. El de Gemini va sin `maxItems`, porque con los límites anidados del contrato la API responde `400`. La validación estricta del servicio no cambia.
