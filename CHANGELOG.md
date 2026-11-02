@@ -4,6 +4,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## Unreleased
 
+## [0.0.3] - 2026-11-01
+
+Incremento 3 (ver `docs/cierre-incremento-3.md` en el repo raíz).
+
 ### Added
 
 - Tokens de razonamiento y plantilla seleccionable (T41, para atribuir y reducir el tiempo de la generación). Resultados en `docs/mediciones-de-generacion/` (repo raíz).
@@ -27,8 +31,6 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - **Plantillas de prompt versionadas** en archivos (`app/prompts/templates/plan_proposal_v1.txt`).
   - **Interfaz común de proveedor** y proveedor simulado determinístico (`AI_PROVIDER=fake`), con escenarios para provocar cada error (`FAKE_PROVIDER_SCENARIO`: `ok`, `timeout`, `provider_error`, `invalid_output`). El tiempo límite se configura con `AI_PROVIDER_TIMEOUT_SECONDS` (25 s por defecto).
   - Tests de contrato, de validación de entrada y salida, de errores y de versionado de prompts.
-- CI (`.github/workflows/ci.yml`): lint con `ruff`, tests con `pytest`, auditoría de dependencias con `pip-audit`, build de la imagen y control de su tamaño (menos de 0,5 GB). Corre en PR hacia `development`, `staging` y `master`, en push a `development` y a mano.
-- CD a staging (`.github/workflows/cd-staging.yml`): despliegue por SSH en la VM de OCI con cada push a `staging`. Reutiliza la CI: si falla, no se despliega.
 
 ### Changed
 
@@ -37,6 +39,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 ### Fixed
 
 - AUD-003: `python run.py` inicia Uvicorn sin recarga automática, incluida la imagen de runtime usada en staging. La recarga para desarrollo se activa con un comando explícito. Se elimina `PORT` de `.env.example` porque el servicio usa el puerto interno fijo 8000.
+
+## [0.0.2] - 2026-10-25
+
+Incremento 2 (ver `docs/cierre-incremento-2.md` en el repo raíz).
+
+### Added
+
+- CI (`.github/workflows/ci.yml`): lint con `ruff`, tests con `pytest`, auditoría de dependencias con `pip-audit`, build de la imagen y control de su tamaño (menos de 0,5 GB). Corre en PR hacia `development`, `staging` y `master`, en push a `development` y a mano.
+- CD a staging (`.github/workflows/cd-staging.yml`): despliegue por SSH en la VM de OCI con cada push a `staging`. Reutiliza la CI: si falla, no se despliega.
 
 ## [0.0.1] - 2026-09-30
 
