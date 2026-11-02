@@ -4,6 +4,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## Unreleased
 
+### Changed
+
+- Construcción directa de `ContractViolation`, sin el helper delegador `_violation`. Se conservan los mensajes, ubicaciones y orden de las validaciones; prompts, parámetros y contrato sin cambios.
+
 ## [0.0.3] - 2026-11-01
 
 Incremento 3 (ver `docs/cierre-incremento-3.md` en el repo raíz).

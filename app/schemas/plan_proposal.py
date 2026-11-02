@@ -295,13 +295,13 @@ class PlanProposal(ContractModel):
         seen = []
         for meal_index, meal in enumerate(self.meals):
             if meal.meal_type in seen:
-                violations.append(_violation(["meals", meal_index, "meal_type"], "Tipo de comida repetido"))
+                violations.append(ContractViolation(loc=["meals", meal_index, "meal_type"], msg="Tipo de comida repetido"))
             elif meal.meal_type not in request.meal_types:
-                violations.append(_violation(["meals", meal_index, "meal_type"], "Tipo de comida no solicitado"))
+                violations.append(ContractViolation(loc=["meals", meal_index, "meal_type"], msg="Tipo de comida no solicitado"))
             seen.append(meal.meal_type)
         missing = [meal_type.value for meal_type in request.meal_types if meal_type not in seen]
         if missing:
-            violations.append(_violation(["meals"], f"Faltan tipos de comida solicitados: {', '.join(missing)}"))
+            violations.append(ContractViolation(loc=["meals"], msg=f"Faltan tipos de comida solicitados: {', '.join(missing)}"))
 
         known_codes = {
             "food": {food.code for food in request.catalog.foods},
@@ -313,16 +313,12 @@ class PlanProposal(ContractModel):
                 for item_index, item in enumerate(option.items):
                     if item.type != "free_text" and item.code not in known_codes[item.type]:
                         violations.append(
-                            _violation(
-                                ["meals", meal_index, "options", option_index, "items", item_index, "code"],
-                                f"Código {item.code} no está entre los de tipo {item.type} enviados",
+                            ContractViolation(
+                                loc=["meals", meal_index, "options", option_index, "items", item_index, "code"],
+                                msg=f"Código {item.code} no está entre los de tipo {item.type} enviados",
                             )
                         )
         return violations
-
-
-def _violation(loc, msg):
-    return ContractViolation(loc=loc, msg=msg)
 
 
 class GenerationInfo(BaseModel):
