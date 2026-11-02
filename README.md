@@ -26,10 +26,16 @@ Esta disposición es necesaria porque el `docker-compose.yml` de `nutria-backend
 
 - `app/main.py` — instancia de la aplicación FastAPI y registro de routers.
 - `app/api/` — un módulo por router.
+- `app/schemas/` — contratos Pydantic de entrada y salida.
+- `app/services/` — orquestación de cada generación (prompt, proveedor y validación de la respuesta).
+- `app/providers/` — interfaz común de proveedor y sus implementaciones: el simulado y los adaptadores de Gemini y OpenAI, más el JSON Schema de salida estructurada que se les pide.
+- `app/prompts/templates/` — plantillas de prompt, un archivo por versión. Una versión publicada no se edita: un cambio de texto va en un archivo nuevo, y `tests/test_prompts.py` lo controla.
 - `run.py` — punto de entrada para levantar el servidor con un solo comando.
 - `requirements.txt` — dependencias del servicio.
-- `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, httpx, ruff, pip-audit). No entran en la imagen de runtime.
+- `requirements-dev.txt` — herramientas de desarrollo y CI (pytest, jsonschema, ruff, pip-audit). No entran en la imagen de runtime.
 - `tests/` — tests de pytest.
+- `contracts/openapi.json` — contrato OpenAPI versionado; pytest verifica que coincida con el generado por FastAPI.
+- `scripts/export_openapi.py` — exporta ese contrato para actualizar las copias de IA y backend.
 - `pyproject.toml` — configuración de pytest y ruff (las dependencias no van acá).
 - `Dockerfile` — imagen de este servicio, en etapas: `runtime` (la última, la que usa el `docker-compose.yml` de `nutria-backend`) y `test`, que suma `requirements-dev.txt` y `tests/` para `npm run test:ia`.
 - `.github/workflows/ci.yml` — integración continua (ver "Integración continua"); `cd-staging.yml` — despliegue a staging (ver "Despliegue en staging").
@@ -42,8 +48,24 @@ Copiar `.env.example` a `.env` (no se versiona) antes de ejecutar:
 cp .env.example .env
 ```
 
-`PORT` es el puerto del servicio; `AI_PROVIDER_API_KEY` y `AI_PROVIDER_BASE_URL`
-configuran el proveedor externo de IA y no se versionan con valor.
+El servicio escucha en el puerto 8000, igual que el puerto interno configurado en
+Docker y Traefik. Las claves de API van solo en `.env` (local o de la VM de staging) y
+nunca se versionan con valor.
+
+| Variable | Default | Uso |
+|---|---|---|
+| `AI_PROVIDER` | `fake` | Proveedor que responde las generaciones: `fake` (el simulado, sin llamadas externas), `gemini` u `openai`. Un valor desconocido impide que el servicio arranque. |
+| `AI_PROVIDER_TIMEOUT_SECONDS` | `25` | Tiempo máximo de espera al proveedor. Pasado ese tiempo, la generación responde `504 PROVIDER_TIMEOUT`. El tiempo máximo del backend para esta llamada tiene que ser mayor. |
+| `FAKE_PROVIDER_SCENARIO` | `ok` | Solo con `AI_PROVIDER=fake`. `invalid_output`, `timeout` o `provider_error` hacen que cada generación termine en ese error controlado, para probar el manejo de errores del backend contra el stack real. |
+| `AI_MODEL` | — | Obligatoria con `gemini` u `openai`: ID del modelo, por ejemplo `gemini-3.8-flash` o `gpt-6-luna`. |
+| `AI_REASONING_LEVEL` | `low` | Nivel de razonamiento. `gemini`: `minimal`, `low`, `medium` o `high`. `openai`: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` o `max`. Un valor fuera de esa lista impide que el servicio arranque; qué valores admite cada modelo lo decide su API. |
+| `AI_PLAN_TEMPLATE` | `plan_proposal_v1` | Plantilla de prompt, entre las publicadas en `app/prompts/templates/`. Una que no existe impide que el servicio arranque. Sirve para comparar versiones; la traza de cada generación registra la que se usó. |
+| `GEMINI_API_KEY` | — | Obligatoria con `AI_PROVIDER=gemini`. Tiene que ser de un proyecto de Google Cloud con facturación activa (tier pago). |
+| `OPENAI_API_KEY` | — | Obligatoria con `AI_PROVIDER=openai`. |
+
+Con `AI_PROVIDER=fake` ninguna de las variables nuevas hace falta, así que un `.env`
+anterior sigue funcionando sin cambios. Con `gemini` u `openai`, si falta el modelo o
+la clave, el servicio no arranca.
 
 ## Cómo ejecutar
 
@@ -57,6 +79,14 @@ python run.py
 
 El servicio queda disponible en `http://localhost:8000`; `GET /health` sirve para
 verificar que está arriba y `/docs` abre la documentación automática de FastAPI.
+
+`python run.py` inicia Uvicorn sin recarga automática, tanto en local como en la
+imagen de runtime usada en staging. Para desarrollar con recarga, ejecutar
+explícitamente:
+
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
 Para levantar el stack completo con Docker (frontend + backend + ia + postgres + proxy) con un solo comando, ver la sección "Cómo ejecutar todo el stack con Docker Compose" en el README de `nutria-backend`. En ese modo el servicio se accede como `http://ia.local.nutria.com` (virtual host servido por Traefik).
 
@@ -83,6 +113,13 @@ contenedor de la etapa `test`; `C` abrevia `docker compose -f nutria-backend/doc
 
 El límite de tamaño sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
 
+Cuando cambie intencionalmente el contrato, revisar la compatibilidad y ejecutar
+`npm run contract:ia:update` desde la carpeta raíz `nutria/`: genera el OpenAPI
+actual en este repo y en `nutria-backend`, dentro de Docker. Después ejecutar
+`npm run test:ia` y `npm run test:backend` desde esa raíz. Las suites comprueban las
+copias sin regenerarlas; cada CI funciona con su propio checkout. Los cambios del
+contrato requieren actualizar ambos repos de forma coordinada antes de desplegar.
+
 ## Despliegue en staging
 
 Un push a `staging` dispara `.github/workflows/cd-staging.yml`: corre el CI y, si
@@ -96,6 +133,7 @@ de `nutria-backend`, sección "Staging".
 - Python
 - FastAPI
 - Uvicorn
+- SDK de los proveedores de IA: `google-genai` y `openai`
 - pytest y ruff (desarrollo y CI)
 
 ## Repositorios relacionados
