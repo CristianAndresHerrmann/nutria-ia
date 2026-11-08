@@ -25,9 +25,11 @@ class StubProvider:
         self.text = text
         self.delay_seconds = delay_seconds
         self.calls = 0
+        self.prompts = []
 
     async def generate(self, prompt, request):
         self.calls += 1
+        self.prompts.append(prompt)
         await asyncio.sleep(self.delay_seconds)
         return ProviderOutput(text=self.text, input_tokens=10, output_tokens=20)
 
@@ -90,7 +92,7 @@ def test_la_respuesta_informa_la_version_de_plantilla_y_los_datos_de_la_generaci
 
     generation = post(payload()).json()["generation"]
 
-    assert generation["template_version"] == "plan_proposal_v1"
+    assert generation["template_version"] == "plan_proposal_v3"
     assert generation["provider"] == "fake"
     assert generation["model"] == "fake-deterministic"
     assert generation["duration_ms"] >= 0
@@ -122,6 +124,19 @@ def test_solicitud_minima_tambien_genera_propuesta_valida():
     assert [meal["meal_type"] for meal in response.json()["proposal"]["meals"]] == ["dinner"]
 
 
+def test_el_objetivo_es_opcional_y_llega_al_proveedor():
+    provider = use_provider(StubProvider(json.dumps(valid_proposal())))
+    with_goal = payload()
+    with_goal["goal"] = "Controlar glucemia"
+    without_goal = payload()
+    without_goal.pop("goal", None)
+
+    assert post(with_goal).status_code == 200
+    assert '"goal": "Controlar glucemia"' in provider.prompts[-1]
+    assert post(without_goal).status_code == 200
+    assert '"goal": null' in provider.prompts[-1]
+
+
 def test_catalogo_con_alimento_complementario_es_valido():
     use_provider(FakeProvider())
     body = {
@@ -150,6 +165,8 @@ def test_catalogo_con_alimento_complementario_es_valido():
         pytest.param(lambda body: body["catalog"]["foods"][0].update(group_code="G99"), id="grupo-inexistente"),
         pytest.param(lambda body: body["catalog"].update(foods=[]), id="catalogo-vacio"),
         pytest.param(lambda body: body["catalog"]["foods"][0].update(code="A 1"), id="codigo-con-espacio"),
+        pytest.param(lambda body: body.update(goal="   "), id="objetivo-vacio"),
+        pytest.param(lambda body: body.update(goal="x" * 501), id="objetivo-demasiado-largo"),
     ],
 )
 def test_solicitud_fuera_del_contrato_da_422_y_no_llega_al_proveedor(mutate):
@@ -200,7 +217,7 @@ def test_salida_que_no_respeta_el_esquema_da_error_controlado(raw):
     assert error["code"] == "INVALID_PROVIDER_OUTPUT"
     assert error["details"]["errors"]
     assert error["details"]["generation"]["raw_response"] == raw
-    assert error["details"]["generation"]["template_version"] == "plan_proposal_v1"
+    assert error["details"]["generation"]["template_version"] == "plan_proposal_v3"
 
 
 def set_item(proposal, item):

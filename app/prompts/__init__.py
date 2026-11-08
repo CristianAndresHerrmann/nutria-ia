@@ -14,7 +14,7 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 # La versión por defecto. AI_PLAN_TEMPLATE elige otra publicada, para comparar
 # plantillas sin desplegar código (T41); la traza registra la que se usó.
-PLAN_PROPOSAL_TEMPLATE_VERSION = "plan_proposal_v1"
+PLAN_PROPOSAL_TEMPLATE_VERSION = "plan_proposal_v3"
 
 
 def load_template(version: str) -> str:
