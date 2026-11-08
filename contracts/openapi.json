@@ -838,6 +838,7 @@
               "likes_cooking": false,
               "usual_shopping_place": "Supermercado del barrio"
             },
+            "goal": "Ordenar las comidas de la semana",
             "habits": {
               "alcohol": "Ocasional",
               "meal_schedule": "Desayuno 7, almuerzo 13, merienda 17, cena 21",
@@ -883,6 +884,19 @@
           },
           "cooking": {
             "$ref": "#/components/schemas/CookingContext"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal"
           },
           "habits": {
             "$ref": "#/components/schemas/Habits"

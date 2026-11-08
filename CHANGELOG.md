@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## Unreleased
 
+### Added
+
+- **Campo opcional `goal` en `POST /plan-proposals`:** el objetivo del paciente, hasta 500 caracteres. Se despliega antes que el backend que lo envía.
+- **Plantilla `plan_proposal_v3`, ahora la vigente:** la v1 con una regla que orienta las opciones y los objetivos al `goal`, sin afirmaciones clínicas.
+
 ### Changed
 
 - Construcción directa de `ContractViolation`, sin el helper delegador `_violation`. Se conservan los mensajes, ubicaciones y orden de las validaciones; prompts, parámetros y contrato sin cambios.

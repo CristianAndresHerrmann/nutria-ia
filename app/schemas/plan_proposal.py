@@ -148,6 +148,7 @@ class CandidateRecipe(ContractModel):
 
 PLAN_PROPOSAL_REQUEST_EXAMPLE = {
     "meal_types": ["breakfast", "lunch", "afternoon_snack", "dinner"],
+    "goal": "Ordenar las comidas de la semana",
     "conditions": [
         {"type": "pathology", "name": "Celiaquía"},
         {"type": "preference", "name": "Pescado"},
@@ -207,6 +208,7 @@ class PlanProposalRequest(ContractModel):
     model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [PLAN_PROPOSAL_REQUEST_EXAMPLE]})
 
     meal_types: list[MealType] = Field(min_length=1, max_length=4)
+    goal: ContextText | None = None
     conditions: list[Condition] = Field(default_factory=list, max_length=100)
     cooking: CookingContext = Field(default_factory=CookingContext)
     outside_home: OutsideHomeContext = Field(default_factory=OutsideHomeContext)
