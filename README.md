@@ -78,7 +78,8 @@ python run.py
 ```
 
 El servicio queda disponible en `http://localhost:8000`; `GET /health` sirve para
-verificar que está arriba y `/docs` abre la documentación automática de FastAPI.
+verificar que está arriba e informa el proveedor y el modelo configurados (sin
+llamarlo), y `/docs` abre la documentación automática de FastAPI.
 
 `python run.py` inicia Uvicorn sin recarga automática, tanto en local como en la
 imagen de runtime usada en staging. Para desarrollar con recarga, ejecutar
@@ -122,7 +123,8 @@ contrato requieren actualizar ambos repos de forma coordinada antes de desplegar
 
 Un push a `staging` dispara `.github/workflows/cd-staging.yml`: corre el CI y, si
 pasa, despliega el servicio `ia` en la VM de staging. En staging el servicio no tiene
-ruta pública: el smoke test lo verifica a través del backend (`/health/ia`). Cómo
+ruta pública: el smoke test lo verifica a través del backend (`/health/ia`) y falla
+si el proveedor configurado es el simulado (`fake`). Cómo
 funciona, la configuración del Environment `staging` y la operación de la VM: README
 de `nutria-backend`, sección "Staging".
 

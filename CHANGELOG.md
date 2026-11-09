@@ -6,6 +6,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Added
 
+- **`GET /health` informa `provider` y `model`** (T74): el proveedor y el modelo configurados, leídos del proveedor ya construido, sin llamarlo ni exponer claves. El smoke test de `cd-staging.yml` falla si el proveedor es `fake`. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`. Se despliega antes que el backend que los reenvía.
 - **Campo opcional `goal` en `POST /plan-proposals`:** el objetivo del paciente, hasta 500 caracteres. Se despliega antes que el backend que lo envía.
 - **Plantilla `plan_proposal_v3`, ahora la vigente:** la v1 con una regla que orienta las opciones y los objetivos al `goal`, sin afirmaciones clínicas.
 
