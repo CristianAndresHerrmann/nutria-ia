@@ -116,13 +116,17 @@ class CatalogFoodGroup(ContractModel):
 class CatalogFood(ContractModel):
     code: Code
     name: Name
-    group_code: Code
+    group_code: Code | None = Field(
+        default=None,
+        description="Grupo del alimento, si se ofrece. Falta cuando el grupo contiene algo excluido para el paciente (DA-40).",
+    )
     categories: list[FoodCategoryType] = Field(default_factory=list, max_length=7)
 
 
 class Catalog(ContractModel):
     """Subconjunto del catálogo permitido para el paciente, ya sin los alimentos
-    rechazados (RF-37). Lo arma el backend."""
+    rechazados (RF-37) ni los grupos que contienen alguno (DA-40). Lo arma el
+    backend."""
 
     food_groups: list[CatalogFoodGroup] = Field(default_factory=list, max_length=500)
     foods: list[CatalogFood] = Field(min_length=1, max_length=2000)
@@ -132,7 +136,7 @@ class Catalog(ContractModel):
         _ensure_unique([group.code for group in self.food_groups], "food_groups")
         _ensure_unique([food.code for food in self.foods], "foods")
         group_codes = {group.code for group in self.food_groups}
-        unknown = sorted({food.group_code for food in self.foods} - group_codes)
+        unknown = sorted({food.group_code for food in self.foods if food.group_code is not None} - group_codes)
         if unknown:
             raise ValueError(f"group_code sin grupo en food_groups: {', '.join(unknown)}")
         return self
