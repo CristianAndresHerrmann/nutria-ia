@@ -13,6 +13,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 - **`catalog.foods[].group_code` pasa a ser opcional en `POST /plan-proposals`** (T54; DA-40). El backend deja de ofrecer los grupos que contienen algo excluido para el paciente, y sus alimentos aptos viajan sin grupo. Un `group_code` informado que no está en `food_groups` sigue dando `422`. La plantilla no cambia. Se despliega antes que el backend que lo usa. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`.
 - Construcción directa de `ContractViolation`, sin el helper delegador `_violation`. Se conservan los mensajes, ubicaciones y orden de las validaciones; prompts, parámetros y contrato sin cambios.
+- **La CI ya no controla el tamaño de la imagen.** El límite de 0,5 GB venía del plan de despliegue en Cloud Run y no aplica al staging en OCI (DA-14; ver `docs/estrategia-de-despliegue.md` en el repo raíz). ONNX Runtime en vez de PyTorch se mantiene.
 
 ## [0.0.3] - 2026-11-01
 

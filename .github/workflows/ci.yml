@@ -50,17 +50,6 @@ jobs:
         run: pip-audit -r requirements.txt
 
       # Sin push. El target por defecto es `runtime`, la imagen sin dependencias
-      # de desarrollo: es la que se mide.
+      # de desarrollo.
       - name: Build de la imagen
         run: docker build -t nutria-ia:ci .
-
-      # Sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
-      - name: Tamaño de la imagen (< 0,5 GB)
-        run: |
-          size=$(docker image inspect nutria-ia:ci --format '{{.Size}}')
-          limit=500000000
-          echo "Imagen nutria-ia: $((size / 1000000)) MB (límite $((limit / 1000000)) MB)"
-          if [ "$size" -ge "$limit" ]; then
-            echo "::error::La imagen pesa $((size / 1000000)) MB y supera el límite de $((limit / 1000000)) MB"
-            exit 1
-          fi

@@ -109,9 +109,7 @@ contenedor de la etapa `test`; `C` abrevia `docker compose -f nutria-backend/doc
 | `ruff check` | `C run --build --rm --no-deps ia-test ruff check` |
 | `pytest` | `npm run test:ia` |
 | `pip-audit -r requirements.txt` | `C run --build --rm --no-deps ia-test pip-audit -r requirements.txt` |
-| `docker build` (sin push) y tamaño menor a 0,5 GB | `docker build -t nutria-ia:local nutria-ia` y `docker image inspect nutria-ia:local --format '{{.Size}}'` (bytes; el límite es 500 000 000). |
-
-El límite de tamaño sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
+| `docker build` (sin push) | `docker build -t nutria-ia:local nutria-ia` |
 
 Cuando cambie intencionalmente el contrato, revisar la compatibilidad y ejecutar
 `npm run contract:ia:update` desde la carpeta raíz `nutria/`: genera el OpenAPI
