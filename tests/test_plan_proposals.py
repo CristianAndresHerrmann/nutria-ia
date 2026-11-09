@@ -149,6 +149,20 @@ def test_catalogo_con_alimento_complementario_es_valido():
     assert post(body).status_code == 200
 
 
+def test_un_alimento_sin_grupo_es_valido():
+    # El backend no ofrece un grupo que contiene algo excluido para el paciente
+    # (DA-40): sus alimentos aptos viajan sin group_code.
+    use_provider(FakeProvider())
+    body = {
+        "meal_types": ["lunch"],
+        "catalog": {"food_groups": [{"code": "G1", "name": "Verduras"}],
+                    "foods": [{"code": "A1", "name": "Arroz blanco", "categories": ["carbohydrate"]},
+                              {"code": "A2", "name": "Zanahoria", "group_code": "G1"}]},
+    }
+
+    assert post(body).status_code == 200
+
+
 # --- Entrada fuera del contrato: 422 sin llamar al proveedor (RNF-07) ------------
 
 
