@@ -78,7 +78,8 @@ python run.py
 ```
 
 El servicio queda disponible en `http://localhost:8000`; `GET /health` sirve para
-verificar que está arriba y `/docs` abre la documentación automática de FastAPI.
+verificar que está arriba e informa el proveedor y el modelo configurados (sin
+llamarlo), y `/docs` abre la documentación automática de FastAPI.
 
 `python run.py` inicia Uvicorn sin recarga automática, tanto en local como en la
 imagen de runtime usada en staging. Para desarrollar con recarga, ejecutar
@@ -109,9 +110,7 @@ contenedor de la etapa `test`; `C` abrevia `docker compose -f nutria-backend/doc
 | `ruff check` | `C run --build --rm --no-deps ia-test ruff check` |
 | `pytest` | `npm run test:ia` |
 | `pip-audit -r requirements.txt` | `C run --build --rm --no-deps ia-test pip-audit -r requirements.txt` |
-| `docker build` (sin push) y tamaño menor a 0,5 GB | `docker build -t nutria-ia:local nutria-ia` y `docker image inspect nutria-ia:local --format '{{.Size}}'` (bytes; el límite es 500 000 000). |
-
-El límite de tamaño sostiene la decisión de usar ONNX Runtime en vez de PyTorch.
+| `docker build` (sin push) | `docker build -t nutria-ia:local nutria-ia` |
 
 Cuando cambie intencionalmente el contrato, revisar la compatibilidad y ejecutar
 `npm run contract:ia:update` desde la carpeta raíz `nutria/`: genera el OpenAPI
@@ -124,7 +123,8 @@ contrato requieren actualizar ambos repos de forma coordinada antes de desplegar
 
 Un push a `staging` dispara `.github/workflows/cd-staging.yml`: corre el CI y, si
 pasa, despliega el servicio `ia` en la VM de staging. En staging el servicio no tiene
-ruta pública: el smoke test lo verifica a través del backend (`/health/ia`). Cómo
+ruta pública: el smoke test lo verifica a través del backend (`/health/ia`) y falla
+si el proveedor configurado es el simulado (`fake`). Cómo
 funciona, la configuración del Environment `staging` y la operación de la VM: README
 de `nutria-backend`, sección "Staging".
 

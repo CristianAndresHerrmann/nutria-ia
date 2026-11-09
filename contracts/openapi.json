@@ -611,6 +611,55 @@
         "title": "Habits",
         "type": "object"
       },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "description": "Modelo configurado (`AI_MODEL`).",
+            "examples": [
+              "gpt-6-luna"
+            ],
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "description": "Proveedor configurado (`AI_PROVIDER`): `fake` es el simulado, sin llamadas externas.",
+            "examples": [
+              "openai"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "service": {
+            "examples": [
+              "nutria-ia"
+            ],
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "examples": [
+              "ok"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "Fecha y hora en UTC, ISO 8601.",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "provider",
+          "model",
+          "timestamp"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
       "MealType": {
         "enum": [
           "breakfast",
@@ -1145,18 +1194,21 @@
   "paths": {
     "/health": {
       "get": {
+        "description": "Informa el proveedor y el modelo configurados, sin llamar al proveedor: el smoke test del CD falla si en staging corre el simulado (`fake`).",
         "operationId": "get_health_health_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
               }
             },
             "description": "Successful Response"
           }
         },
-        "summary": "Get Health"
+        "summary": "Verifica que el servicio responde"
       }
     },
     "/plan-proposals": {

@@ -6,6 +6,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Added
 
+- **`GET /health` informa `provider` y `model`** (T74): el proveedor y el modelo configurados, leídos del proveedor ya construido, sin llamarlo ni exponer claves. El smoke test de `cd-staging.yml` falla si el proveedor es `fake`. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`. Se despliega antes que el backend que los reenvía.
 - **Campo opcional `goal` en `POST /plan-proposals`:** el objetivo del paciente, hasta 500 caracteres. Se despliega antes que el backend que lo envía.
 - **Plantilla `plan_proposal_v3`, ahora la vigente:** la v1 con una regla que orienta las opciones y los objetivos al `goal`, sin afirmaciones clínicas.
 
@@ -13,6 +14,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 - **`catalog.foods[].group_code` pasa a ser opcional en `POST /plan-proposals`** (T54; DA-40). El backend deja de ofrecer los grupos que contienen algo excluido para el paciente, y sus alimentos aptos viajan sin grupo. Un `group_code` informado que no está en `food_groups` sigue dando `422`. La plantilla no cambia. Se despliega antes que el backend que lo usa. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`.
 - Construcción directa de `ContractViolation`, sin el helper delegador `_violation`. Se conservan los mensajes, ubicaciones y orden de las validaciones; prompts, parámetros y contrato sin cambios.
+- **La CI ya no controla el tamaño de la imagen.** El límite de 0,5 GB venía del plan de despliegue en Cloud Run y no aplica al staging en OCI (DA-14; ver `docs/estrategia-de-despliegue.md` en el repo raíz). ONNX Runtime en vez de PyTorch se mantiene.
 
 ## [0.0.3] - 2026-11-01
 
