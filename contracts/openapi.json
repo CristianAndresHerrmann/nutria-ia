@@ -60,7 +60,7 @@
       },
       "Catalog": {
         "additionalProperties": false,
-        "description": "Subconjunto del catálogo permitido para el paciente, ya sin los alimentos\nrechazados (RF-37). Lo arma el backend.",
+        "description": "Subconjunto del catálogo permitido para el paciente, ya sin los alimentos\nrechazados (RF-37) ni los grupos que contienen alguno (DA-40). Lo arma el\nbackend.",
         "properties": {
           "food_groups": {
             "items": {
@@ -105,11 +105,19 @@
             "type": "string"
           },
           "group_code": {
-            "maxLength": 16,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "Group Code",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Grupo del alimento, si se ofrece. Falta cuando el grupo contiene algo excluido para el paciente (DA-40).",
+            "title": "Group Code"
           },
           "name": {
             "maxLength": 120,
@@ -120,8 +128,7 @@
         },
         "required": [
           "code",
-          "name",
-          "group_code"
+          "name"
         ],
         "title": "CatalogFood",
         "type": "object"
