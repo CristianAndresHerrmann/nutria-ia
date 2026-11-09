@@ -64,3 +64,19 @@ jobs:
           }
           # La IA no tiene ruta pública: se verifica a través del backend.
           check "https://api.$DOMAIN/health/ia"
+
+      # El check de arriba pasa igual con el proveedor simulado: el proveedor y el
+      # modelo configurados se leen de /health/ia, sin llamar al proveedor (costo
+      # cero). Sin AI_PROVIDER en nutria-ia/.env de la VM, la IA arranca con `fake`.
+      - name: Proveedor de IA real
+        env:
+          DOMAIN: ${{ vars.STAGING_DOMAIN }}
+        run: |
+          body=$(curl -fsS --max-time 10 "https://api.$DOMAIN/health/ia")
+          provider=$(jq -r '.ia.provider // "sin informar"' <<<"$body")
+          model=$(jq -r '.ia.model // "sin informar"' <<<"$body")
+          echo "Proveedor de IA: $provider ($model)"
+          if [ -z "$provider" ] || [ "$provider" = fake ] || [ "$provider" = "sin informar" ]; then
+            echo "::error::nutria-ia corre con el proveedor '$provider'. Revisar AI_PROVIDER en nutria-ia/.env de la VM y volver a desplegar"
+            exit 1
+          fi
