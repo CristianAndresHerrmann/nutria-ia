@@ -92,7 +92,7 @@ def test_la_respuesta_informa_la_version_de_plantilla_y_los_datos_de_la_generaci
 
     generation = post(payload()).json()["generation"]
 
-    assert generation["template_version"] == "plan_proposal_v3"
+    assert generation["template_version"] == "plan_proposal_v4"
     assert generation["provider"] == "fake"
     assert generation["model"] == "fake-deterministic"
     assert generation["duration_ms"] >= 0
@@ -231,7 +231,7 @@ def test_salida_que_no_respeta_el_esquema_da_error_controlado(raw):
     assert error["code"] == "INVALID_PROVIDER_OUTPUT"
     assert error["details"]["errors"]
     assert error["details"]["generation"]["raw_response"] == raw
-    assert error["details"]["generation"]["template_version"] == "plan_proposal_v3"
+    assert error["details"]["generation"]["template_version"] == "plan_proposal_v4"
 
 
 def set_item(proposal, item):
