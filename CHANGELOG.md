@@ -8,7 +8,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 - **`GET /health` informa `provider` y `model`** (T74): el proveedor y el modelo configurados, leídos del proveedor ya construido, sin llamarlo ni exponer claves. El smoke test de `cd-staging.yml` falla si el proveedor es `fake`. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`. Se despliega antes que el backend que los reenvía.
 - **Campo opcional `goal` en `POST /plan-proposals`:** el objetivo del paciente, hasta 500 caracteres. Se despliega antes que el backend que lo envía.
-- **Plantilla `plan_proposal_v3`, ahora la vigente:** la v1 con una regla que orienta las opciones y los objetivos al `goal`, sin afirmaciones clínicas.
+- **Plantilla `plan_proposal_v3`:** la v1 con una regla que orienta las opciones y los objetivos al `goal`, sin afirmaciones clínicas.
+- **Plantilla `plan_proposal_v4`, ahora la vigente** (DA-43). Suma tres reglas a la v3:
+  - Ante una intolerancia a un alimento, incluir la variante del catálogo sin el componente que la motiva (por ejemplo, leche deslactosada). Nunca ante una alergia ni un rechazo.
+  - Sugerir fruta fresca de postre en las recomendaciones generales si el almuerzo o la cena no la tienen, salvo que una condición alcance a las frutas.
+  - No explicar cómo elegir entre las opciones ni cómo armar el plato, porque el backend agrega ese texto.
+
+  El contrato no cambia, así que no hay un orden obligatorio de despliegue con el backend.
 
 ### Changed
 
