@@ -21,6 +21,18 @@
               }
             ]
           },
+          "ingredients": {
+            "description": "Códigos de catalog.foods de los ingredientes de la receta (T60). Son datos de la receta, no resultados del motor de reglas.",
+            "items": {
+              "maxLength": 16,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Ingredients",
+            "type": "array"
+          },
           "meal_types": {
             "items": {
               "$ref": "#/components/schemas/MealType"
@@ -136,6 +148,15 @@
       "CatalogFoodGroup": {
         "additionalProperties": false,
         "properties": {
+          "categories": {
+            "description": "Categorías que garantiza un ítem del grupo: las que comparten todos sus alimentos (DA-30, T60).",
+            "items": {
+              "$ref": "#/components/schemas/FoodCategoryType"
+            },
+            "maxItems": 7,
+            "title": "Categories",
+            "type": "array"
+          },
           "code": {
             "maxLength": 16,
             "minLength": 1,
@@ -245,6 +266,39 @@
             ],
             "title": "Cooks"
           },
+          "has_microwave": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Microwave"
+          },
+          "has_oven": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Oven"
+          },
+          "has_stovetop": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Stovetop"
+          },
           "home_equipment": {
             "anyOf": [
               {
@@ -268,6 +322,19 @@
               }
             ],
             "title": "Likes Cooking"
+          },
+          "minutes_per_day": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1440.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes Per Day"
           },
           "usual_shopping_place": {
             "anyOf": [
@@ -295,6 +362,74 @@
         ],
         "title": "CookingMethod",
         "type": "string"
+      },
+      "ExpectedComposition": {
+        "additionalProperties": false,
+        "description": "Categorías que se esperan en cada opción de una comida (RF-26, DA-29). Las\nenvía el backend desde la misma configuración con la que el motor de reglas\nvalida la composición (T60): orientan a la IA, y el motor las sigue validando.",
+        "properties": {
+          "afternoon_snack": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FoodCategoryType"
+                },
+                "maxItems": 7,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Afternoon Snack"
+          },
+          "breakfast": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FoodCategoryType"
+                },
+                "maxItems": 7,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breakfast"
+          },
+          "dinner": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FoodCategoryType"
+                },
+                "maxItems": 7,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dinner"
+          },
+          "lunch": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FoodCategoryType"
+                },
+                "maxItems": 7,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lunch"
+          }
+        },
+        "title": "ExpectedComposition",
+        "type": "object"
       },
       "FoodCategoryType": {
         "enum": [
@@ -524,6 +659,15 @@
         ],
         "title": "GenerationInfo",
         "type": "object"
+      },
+      "GoalCategory": {
+        "description": "Categoría del objetivo del paciente (T61): solo los objetivos con pautas\nde adecuación documentadas, más \"otro\".",
+        "enum": [
+          "lose_weight",
+          "other"
+        ],
+        "title": "GoalCategory",
+        "type": "string"
       },
       "HTTPValidationError": {
         "properties": {
@@ -774,6 +918,10 @@
               {
                 "code": "R1",
                 "cooking_method": "oven",
+                "ingredients": [
+                  "A2",
+                  "A3"
+                ],
                 "meal_types": [
                   "lunch",
                   "dinner"
@@ -785,10 +933,16 @@
             "catalog": {
               "food_groups": [
                 {
+                  "categories": [
+                    "fiber"
+                  ],
                   "code": "G1",
                   "name": "Frutas"
                 },
                 {
+                  "categories": [
+                    "vegetable"
+                  ],
                   "code": "G2",
                   "name": "Verduras"
                 },
@@ -890,11 +1044,36 @@
             "cooking": {
               "cooking_time": "30 minutos por día",
               "cooks": true,
+              "has_microwave": true,
+              "has_oven": true,
+              "has_stovetop": false,
               "home_equipment": "Horno y microondas",
               "likes_cooking": false,
+              "minutes_per_day": 30,
               "usual_shopping_place": "Supermercado del barrio"
             },
+            "expected_composition": {
+              "afternoon_snack": [
+                "protein",
+                "carbohydrate"
+              ],
+              "breakfast": [
+                "protein",
+                "carbohydrate"
+              ],
+              "dinner": [
+                "vegetable",
+                "protein",
+                "carbohydrate"
+              ],
+              "lunch": [
+                "vegetable",
+                "protein",
+                "carbohydrate"
+              ]
+            },
             "goal": "Ordenar las comidas de la semana",
+            "goal_category": "other",
             "habits": {
               "alcohol": "Ocasional",
               "meal_schedule": "Desayuno 7, almuerzo 13, merienda 17, cena 21",
@@ -941,6 +1120,9 @@
           "cooking": {
             "$ref": "#/components/schemas/CookingContext"
           },
+          "expected_composition": {
+            "$ref": "#/components/schemas/ExpectedComposition"
+          },
           "goal": {
             "anyOf": [
               {
@@ -953,6 +1135,16 @@
               }
             ],
             "title": "Goal"
+          },
+          "goal_category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GoalCategory"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "habits": {
             "$ref": "#/components/schemas/Habits"

@@ -40,6 +40,14 @@ class FoodCategoryType(StrEnum):
     complementary = "complementary"
 
 
+class GoalCategory(StrEnum):
+    """Categoría del objetivo del paciente (T61): solo los objetivos con pautas
+    de adecuación documentadas, más "otro"."""
+
+    LOSE_WEIGHT = "lose_weight"
+    OTHER = "other"
+
+
 class CookingMethod(StrEnum):
     oven = "oven"
     stovetop = "stovetop"
@@ -82,6 +90,13 @@ class CookingContext(ContractModel):
     cooking_time: ContextText | None = None
     home_equipment: ContextText | None = None
     usual_shopping_place: ContextText | None = None
+    # Estructurados (T62). El backend ya sacó las recetas de un equipo que el
+    # paciente no tiene. Los minutos por día son un dato y no filtran: el tiempo
+    # de una receta es una referencia, no un límite (DA-50, plan_proposal_v9).
+    has_oven: bool | None = None
+    has_stovetop: bool | None = None
+    has_microwave: bool | None = None
+    minutes_per_day: int | None = Field(default=None, gt=0, le=1440)
 
 
 class OutsideHomeContext(ContractModel):
@@ -111,6 +126,11 @@ class Habits(ContractModel):
 class CatalogFoodGroup(ContractModel):
     code: Code
     name: Name
+    categories: list[FoodCategoryType] = Field(
+        default_factory=list,
+        max_length=7,
+        description="Categorías que garantiza un ítem del grupo: las que comparten todos sus alimentos (DA-30, T60).",
+    )
 
 
 class CatalogFood(ContractModel):
@@ -148,11 +168,34 @@ class CandidateRecipe(ContractModel):
     meal_types: list[MealType] = Field(min_length=1, max_length=4)
     cooking_method: CookingMethod | None = None
     time_minutes: int | None = Field(default=None, gt=0, le=1440)
+    ingredients: list[Code] = Field(
+        default_factory=list,
+        max_length=50,
+        description="Códigos de catalog.foods de los ingredientes de la receta (T60). Son datos de la receta, no resultados del motor de reglas.",
+    )
+
+
+class ExpectedComposition(ContractModel):
+    """Categorías que se esperan en cada opción de una comida (RF-26, DA-29). Las
+    envía el backend desde la misma configuración con la que el motor de reglas
+    valida la composición (T60): orientan a la IA, y el motor las sigue validando."""
+
+    breakfast: list[FoodCategoryType] | None = Field(default=None, max_length=7)
+    lunch: list[FoodCategoryType] | None = Field(default=None, max_length=7)
+    afternoon_snack: list[FoodCategoryType] | None = Field(default=None, max_length=7)
+    dinner: list[FoodCategoryType] | None = Field(default=None, max_length=7)
 
 
 PLAN_PROPOSAL_REQUEST_EXAMPLE = {
     "meal_types": ["breakfast", "lunch", "afternoon_snack", "dinner"],
+    "expected_composition": {
+        "breakfast": ["protein", "carbohydrate"],
+        "lunch": ["vegetable", "protein", "carbohydrate"],
+        "afternoon_snack": ["protein", "carbohydrate"],
+        "dinner": ["vegetable", "protein", "carbohydrate"],
+    },
     "goal": "Ordenar las comidas de la semana",
+    "goal_category": "other",
     "conditions": [
         {"type": "pathology", "name": "Celiaquía"},
         {"type": "preference", "name": "Pescado"},
@@ -163,6 +206,10 @@ PLAN_PROPOSAL_REQUEST_EXAMPLE = {
         "cooking_time": "30 minutos por día",
         "home_equipment": "Horno y microondas",
         "usual_shopping_place": "Supermercado del barrio",
+        "has_oven": True,
+        "has_stovetop": False,
+        "has_microwave": True,
+        "minutes_per_day": 30,
     },
     "outside_home": {
         "meals_outside_home": "Almuerza en el trabajo",
@@ -178,8 +225,8 @@ PLAN_PROPOSAL_REQUEST_EXAMPLE = {
     },
     "catalog": {
         "food_groups": [
-            {"code": "G1", "name": "Frutas"},
-            {"code": "G2", "name": "Verduras"},
+            {"code": "G1", "name": "Frutas", "categories": ["fiber"]},
+            {"code": "G2", "name": "Verduras", "categories": ["vegetable"]},
             {"code": "G3", "name": "Carnes"},
             {"code": "G4", "name": "Cereales sin TACC"},
             {"code": "G5", "name": "Lácteos"},
@@ -203,6 +250,7 @@ PLAN_PROPOSAL_REQUEST_EXAMPLE = {
             "meal_types": ["lunch", "dinner"],
             "cooking_method": "oven",
             "time_minutes": 40,
+            "ingredients": ["A2", "A3"],
         }
     ],
 }
@@ -212,7 +260,9 @@ class PlanProposalRequest(ContractModel):
     model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [PLAN_PROPOSAL_REQUEST_EXAMPLE]})
 
     meal_types: list[MealType] = Field(min_length=1, max_length=4)
+    expected_composition: ExpectedComposition = Field(default_factory=ExpectedComposition)
     goal: ContextText | None = None
+    goal_category: GoalCategory | None = None
     conditions: list[Condition] = Field(default_factory=list, max_length=100)
     cooking: CookingContext = Field(default_factory=CookingContext)
     outside_home: OutsideHomeContext = Field(default_factory=OutsideHomeContext)
@@ -225,6 +275,10 @@ class PlanProposalRequest(ContractModel):
     def _no_repeats(self):
         _ensure_unique(self.meal_types, "meal_types")
         _ensure_unique([recipe.code for recipe in self.candidate_recipes], "candidate_recipes")
+        food_codes = {food.code for food in self.catalog.foods}
+        unknown = sorted({code for recipe in self.candidate_recipes for code in recipe.ingredients} - food_codes)
+        if unknown:
+            raise ValueError(f"ingredients con códigos que no están en catalog.foods: {', '.join(unknown)}")
         return self
 
 
