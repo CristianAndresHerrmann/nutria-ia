@@ -91,7 +91,8 @@ class CookingContext(ContractModel):
     home_equipment: ContextText | None = None
     usual_shopping_place: ContextText | None = None
     # Estructurados (T62). El backend ya sacó las recetas de un equipo que el
-    # paciente no tiene; los minutos por día no filtran, los pondera el modelo.
+    # paciente no tiene. Los minutos por día son un dato y no filtran: el tiempo
+    # de una receta es una referencia, no un límite (DA-50, plan_proposal_v9).
     has_oven: bool | None = None
     has_stovetop: bool | None = None
     has_microwave: bool | None = None
