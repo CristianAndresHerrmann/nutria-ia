@@ -92,7 +92,7 @@ def test_la_respuesta_informa_la_version_de_plantilla_y_los_datos_de_la_generaci
 
     generation = post(payload()).json()["generation"]
 
-    assert generation["template_version"] == "plan_proposal_v4"
+    assert generation["template_version"] == "plan_proposal_v9"
     assert generation["provider"] == "fake"
     assert generation["model"] == "fake-deterministic"
     assert generation["duration_ms"] >= 0
@@ -163,6 +163,20 @@ def test_un_alimento_sin_grupo_es_valido():
     assert post(body).status_code == 200
 
 
+def test_composicion_esperada_e_ingredientes_son_opcionales_y_llegan_al_proveedor():
+    # T60: el backend que todavía no los envía sigue funcionando.
+    provider = use_provider(StubProvider(json.dumps(valid_proposal())))
+    full = payload()
+    bare = payload()
+    bare.pop("expected_composition")
+    bare["candidate_recipes"][0].pop("ingredients")
+
+    assert post(full).status_code == 200
+    assert '"expected_composition": {' in provider.prompts[-1]
+    assert '"ingredients": [' in provider.prompts[-1]
+    assert post(bare).status_code == 200
+
+
 # --- Entrada fuera del contrato: 422 sin llamar al proveedor (RNF-07) ------------
 
 
@@ -181,6 +195,16 @@ def test_un_alimento_sin_grupo_es_valido():
         pytest.param(lambda body: body["catalog"]["foods"][0].update(code="A 1"), id="codigo-con-espacio"),
         pytest.param(lambda body: body.update(goal="   "), id="objetivo-vacio"),
         pytest.param(lambda body: body.update(goal="x" * 501), id="objetivo-demasiado-largo"),
+        pytest.param(lambda body: body.update(goal_category="gain_muscle"), id="categoria-de-objetivo-desconocida"),
+        pytest.param(lambda body: body["cooking"].update(minutes_per_day=0), id="minutos-por-dia-cero"),
+        pytest.param(lambda body: body["cooking"].update(minutes_per_day=1441), id="minutos-por-dia-de-mas"),
+        pytest.param(lambda body: body["cooking"].update(has_grill=True), id="equipo-no-declarado"),
+        pytest.param(lambda body: body["candidate_recipes"][0].update(ingredients=["A99"]),
+                     id="ingrediente-fuera-del-catalogo"),
+        pytest.param(lambda body: body["expected_composition"].update(brunch=["protein"]),
+                     id="composicion-de-comida-desconocida"),
+        pytest.param(lambda body: body["expected_composition"].update(lunch=["calcium"]),
+                     id="composicion-con-categoria-desconocida"),
     ],
 )
 def test_solicitud_fuera_del_contrato_da_422_y_no_llega_al_proveedor(mutate):
@@ -231,7 +255,7 @@ def test_salida_que_no_respeta_el_esquema_da_error_controlado(raw):
     assert error["code"] == "INVALID_PROVIDER_OUTPUT"
     assert error["details"]["errors"]
     assert error["details"]["generation"]["raw_response"] == raw
-    assert error["details"]["generation"]["template_version"] == "plan_proposal_v4"
+    assert error["details"]["generation"]["template_version"] == "plan_proposal_v9"
 
 
 def set_item(proposal, item):

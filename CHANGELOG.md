@@ -9,7 +9,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - **`GET /health` informa `provider` y `model`** (T74): el proveedor y el modelo configurados, leídos del proveedor ya construido, sin llamarlo ni exponer claves. El smoke test de `cd-staging.yml` falla si el proveedor es `fake`. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`. Se despliega antes que el backend que los reenvía.
 - **Campo opcional `goal` en `POST /plan-proposals`:** el objetivo del paciente, hasta 500 caracteres. Se despliega antes que el backend que lo envía.
 - **Plantilla `plan_proposal_v3`:** la v1 con una regla que orienta las opciones y los objetivos al `goal`, sin afirmaciones clínicas.
-- **Plantilla `plan_proposal_v4`, ahora la vigente** (DA-43). Suma tres reglas a la v3:
+- **Composición esperada, categorías de los grupos e ingredientes de las recetas en `POST /plan-proposals`** (T60, DA-47). Campos opcionales nuevos: `expected_composition` (categorías por tipo de comida), `catalog.food_groups[].categories` (lo que garantiza un ítem del grupo) y `candidate_recipes[].ingredients` (códigos de `catalog.foods`; uno que no está da `422`). Se despliega antes que el backend que los envía. Contrato versionado y copia del backend actualizados con `npm run contract:ia:update`.
+- **Campo opcional `goal_category` en `POST /plan-proposals`** (T61, DA-49): `lose_weight` u `other`; otro valor da `422`. Lo va a usar la recuperación del RAG, que no puede usar el texto libre del objetivo. La plantilla no cambia. Se despliega antes que el backend que lo envía.
+- **Equipamiento y minutos por día estructurados en `cooking`** (T62, DA-48): `has_oven`, `has_stovetop`, `has_microwave` y `minutes_per_day` (entre 1 y 1440), opcionales. Se despliega antes que el backend que los envía.
+- **Plantilla `plan_proposal_v9`, ahora la vigente** (DA-50). La v8 con el tiempo de la receta como referencia de la receta, no como límite: la regla 17 ya no pide preferir recetas que no superen los minutos por día, sino no descartarlas por eso, porque puede cocinar otra persona, y la regla de las recetas deja de mencionar el tiempo del paciente. El contrato no cambia.
+- **Plantilla `plan_proposal_v8`** (T62, DA-48). La v7 con una regla: preferir recetas que no superen los minutos por día, y usar una más larga solo si el paciente tiene más tiempo algún día, aclarándolo en la opción.
+- **Plantilla `plan_proposal_v7`** (T60, DA-47). La v6 con dos reglas: cubrir la composición esperada sumando las categorías de los ítems (un grupo solo aporta las suyas, y uno sin la categoría no la cubre), y elegir las recetas por sus ingredientes.
+- **Plantilla `plan_proposal_v6`** (DA-46). La v5 con la fruta fresca de postre como ítem en cada opción de almuerzo y cena, en vez de sugerirla en las recomendaciones generales. No se agrega si la opción ya tiene fruta ni si una condición del paciente alcanza a las frutas. El contrato no cambia.
+- **Plantilla `plan_proposal_v5`** (T59, DA-45). Suma dos reglas a la v4:
+  - Si el paciente compra comida hecha o come donde no elige el menú (rotisería, comedor), esa opción se arma con alimentos o grupos del catálogo, y la descripción aclara que se puede comprar hecha. Antes la IA lo escribía como texto libre, que bloquea el plan.
+  - No repetir una receta en más de una opción de la propuesta.
+
+  El contrato no cambia.
+- **Plantilla `plan_proposal_v4`** (DA-43). Suma tres reglas a la v3:
   - Ante una intolerancia a un alimento, incluir la variante del catálogo sin el componente que la motiva (por ejemplo, leche deslactosada). Nunca ante una alergia ni un rechazo.
   - Sugerir fruta fresca de postre en las recomendaciones generales si el almuerzo o la cena no la tienen, salvo que una condición alcance a las frutas.
   - No explicar cómo elegir entre las opciones ni cómo armar el plato, porque el backend agrega ese texto.
